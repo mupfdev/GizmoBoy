@@ -1,6 +1,6 @@
 # GizmoBoy
 
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/c6cbc3b327354a9a876e66b91bdf76a3)](https://www.codacy.com/gh/mupfdev/GizmoBoy/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mupfdev/GizmoBoy&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/4b253572c9bc49b1b94728f579792e97)](https://www.codacy.com/gh/mupfdev/GizmoBoy/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mupfdev/GizmoBoy&amp;utm_campaign=Badge_Grade)
 [![CMake](https://github.com/mupfdev/GizmoBoy/actions/workflows/cmake.yml/badge.svg)](https://github.com/mupfdev/GizmoBoy/actions/workflows/cmake.yml)
 [![API Reference](https://img.shields.io/badge/docs-API%20Reference-success)](https://mupfdev.github.io/GizmoBoy)
 
