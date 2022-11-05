@@ -16,7 +16,7 @@
 static Uint16 input_state = 0;
 
 // API functions.
-static int but(lua_State* L);
+static int btn(lua_State* L);
 
 void input_get_buttons(Uint16 *state)
 {
@@ -30,12 +30,12 @@ void input_set_buttons(Uint16 state)
 
 void register_input_api(core_t* core)
 {
-    lua_pushcfunction(core->L, but);
-    lua_setglobal(core->L, "but");
+    lua_pushcfunction(core->L, btn);
+    lua_setglobal(core->L, "btn");
 }
 
 // API functions.
-static int but(lua_State* L)
+static int btn(lua_State* L)
 {
     int         argc = lua_gettop(L);
     lua_Integer ret  = input_state;

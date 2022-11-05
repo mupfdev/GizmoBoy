@@ -218,7 +218,7 @@ the draw state.
 
 ## Input
 
-### `but()`
+### `btn()`
 
 Tests if a button is being pressed at this moment.
 
