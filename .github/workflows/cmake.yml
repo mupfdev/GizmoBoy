@@ -1,0 +1,76 @@
+name: Project build
+
+on:
+  push:
+  pull_request:
+    branches: [master]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+  # Dependencies to build SDL as a subproject
+  UBUNTU_SDL_BUILD_DEPS: gnome-desktop-testing libasound2-dev libpulse-dev libaudio-dev libjack-dev libsndio-dev libsamplerate0-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev
+  UBUNTU_MIXER_BUILD_DEPS: libflac-dev libfluidsynth-dev libmpg123-dev libopusfile-dev libvorbis-dev libmodplug-dev
+  MACOS_MIXER_BUILD_DEPS: flac fluidsynth libvorbis libmodplug mpg123 opusfile
+
+jobs:
+  build:
+    name: "Build (${{ matrix.platform.name }})"
+    runs-on: ${{ matrix.platform.os }}
+
+    defaults:
+      run:
+        shell: bash
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - { name: "Windows, MSVC",     os: windows-latest, cmake_flags: "-A x64"}
+          - { name: "Windows, Clang-cl", os: windows-latest, cmake_flags: "-T ClangCL -A x64"}
+          - { name: "macOS, Source",     os: macos-latest,   cmake_flags: "-GNinja", use_binary_deps: false}
+          - { name: "macOS, Brew",       os: macos-latest,   cmake_flags: "-GNinja", use_binary_deps: true}
+          - { name: "Ubuntu, Source",    os: ubuntu-latest,  cmake_flags: "-GNinja", use_binary_deps: false}
+          - { name: "Ubuntu, Apt",       os: ubuntu-latest,  cmake_flags: "-GNinja", use_binary_deps: true}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install build dependencies (Ubuntu)
+        if: runner.os == 'Linux'
+        # Considering the large amount of dependencies, cache them to save time from run to run
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: |
+            build-essential \
+            pkg-config \
+            cmake \
+            ninja-build \
+            ${{ env.UBUNTU_SDL_BUILD_DEPS }} \
+            ${{ env.UBUNTU_MIXER_BUILD_DEPS }}
+      - name: Install binary dependencies (Ubuntu)
+        if: "runner.os == 'Linux' && matrix.platform.use_binary_deps"
+        run: sudo apt-get install -y libsdl2-dev libsdl2-mixer-dev
+
+      - name: Install build dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install \
+            cmake \
+            ninja \
+            pkg-config \
+            ${{ env.MACOS_MIXER_BUILD_DEPS }}
+      - name: Install binary dependencies (macOS)
+        if: "runner.os == 'macOS' && matrix.platform.use_binary_deps"
+        run: brew install sdl2 sdl2_mixer
+
+      - name: Configure project
+        run: |
+          cmake -S . \
+                -B build \
+                -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+                -D CELESTE_P8_ENABLE_AUDIO=ON \
+                ${{ matrix.platform.cmake_flags }}
+
+      - name: Build project
+        run: cmake --build build --config ${{env.BUILD_TYPE}}
