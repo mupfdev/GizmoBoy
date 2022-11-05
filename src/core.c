@@ -43,7 +43,7 @@ void core_update(core_t *core)
     {
         Uint16 button_state;
 
-        //input_get_buttons(&button_state);
+        input_get_buttons(&button_state);
 
         switch (core->event.type)
         {
