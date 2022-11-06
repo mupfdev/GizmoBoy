@@ -59,3 +59,8 @@ Gizmondo.
 - stb by Sean Barrett is licensed under "The MIT License".  See the file
   [LICENSE](https://github.com/nothings/stb/blob/master/LICENSE) for
   details.
+
+- I adapted much of my API description from the [PICO-8
+  Wiki](https://pico-8.fandom.com/wiki/Pico-8_Wikia) and owe thanks to
+  the countless authors for the great reference.  This content is
+  licensed under [CC-BY-SA](https://www.fandom.com/licensing).
