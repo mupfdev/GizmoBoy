@@ -15,6 +15,7 @@
 #include "core.h"
 #include "graphics.h"
 #include "input.h"
+#include "mymath.h"
 
 int core_init(core_t **core)
 {
@@ -31,6 +32,7 @@ int core_init(core_t **core)
     {
         register_graphics_api((*core));
         register_input_api((*core));
+        register_math_api((*core));
     }
 
     (*core)->is_running = SDL_TRUE;
@@ -40,6 +42,11 @@ int core_init(core_t **core)
 
 void core_update(core_t *core)
 {
+    if (NULL == core)
+    {
+        return;
+    }
+
     if (SDL_PollEvent(&core->event))
     {
         Uint16 button_state;

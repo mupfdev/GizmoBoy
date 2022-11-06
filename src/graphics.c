@@ -23,6 +23,7 @@ typedef struct draw_state
     SDL_Renderer *renderer;
     SDL_Texture  *render_target;
     SDL_Texture  *font;
+    Uint8         buffer[0x3c00];
     int           col;
     int           cur_x;
     int           cur_y;
@@ -34,9 +35,10 @@ static draw_state_t state = { 0 };
 
 static void draw_circ_sub(int xc, int yc, int x, int y, int col);
 static void draw_circ(int xc, int yc, int r, int col);
+static void draw_pixel(int x, int y, int col);
+static void draw_rect(int x0, int y0, int x1, int y1, int col, SDL_bool fill);
 static void get_character_position(const unsigned char character, int* pos_x, int* pos_y);
 static int  load_texture_from_file(const char* file_name, SDL_Texture** texture);
-static void put_pixel(int x, int y, int col);
 static void set_col(int col, SDL_bool update_state);
 
 // API functions.
@@ -47,6 +49,8 @@ static int cursor(lua_State* L);
 static int flip(lua_State* L);
 static int print(lua_State* L);
 static int pset(lua_State* L);
+static int rect(lua_State* L);
+static int rectfill(lua_State* L);
 
 int graphics_init(void)
 {
@@ -158,19 +162,25 @@ void register_graphics_api(core_t* core)
 
     lua_pushcfunction(core->L, pset);
     lua_setglobal(core->L, "pset");
+
+    lua_pushcfunction(core->L, rect);
+    lua_setglobal(core->L, "rect");
+
+    lua_pushcfunction(core->L, rectfill);
+    lua_setglobal(core->L, "rectfill");
 }
 
 // Draw pixels at subsequence points.
 static void draw_circ_sub(int xc, int yc, int x, int y, int col)
 {
-    put_pixel(xc+x, yc+y, col);
-    put_pixel(xc-x, yc+y, col);
-    put_pixel(xc+x, yc-y, col);
-    put_pixel(xc-x, yc-y, col);
-    put_pixel(xc+y, yc+x, col);
-    put_pixel(xc-y, yc+x, col);
-    put_pixel(xc+y, yc-x, col);
-    put_pixel(xc-y, yc-x, col);
+    draw_pixel(xc+x, yc+y, col);
+    draw_pixel(xc-x, yc+y, col);
+    draw_pixel(xc+x, yc-y, col);
+    draw_pixel(xc-x, yc-y, col);
+    draw_pixel(xc+y, yc+x, col);
+    draw_pixel(xc-y, yc+x, col);
+    draw_pixel(xc+y, yc-x, col);
+    draw_pixel(xc-y, yc-x, col);
 }
 
 // Draw cicrcle using Bresenham's algoritmh.
@@ -197,6 +207,63 @@ static void draw_circ(int xc, int yc, int r, int col)
         }
         draw_circ_sub(xc, yc, x, y, col);
     }
+}
+
+static void draw_pixel(int x, int y, int col)
+{
+    set_col(col, SDL_FALSE);
+    if (SDL_RenderDrawPoint(state.renderer, x, y) != 0)
+    {
+        SDL_Log("Unable to draw pixel: %s", SDL_GetError());
+    }
+    set_col(state.col, SDL_FALSE);
+}
+
+static void draw_rect(int x0, int y0, int x1, int y1, int col, SDL_bool fill)
+{
+    SDL_Rect rect;
+    int      w = 0;
+    int      h = 0;
+
+    if (x0 >= x1)
+    {
+        w = x0 - x1;
+    }
+    else
+    {
+        w = x1 - x0;
+    }
+
+    if (y0 >= y1)
+    {
+        h = y0 - y1;
+    }
+    else
+    {
+        h = y1 - y0;
+    }
+
+    rect.x = x0;
+    rect.y = y0;
+    rect.w = w;
+    rect.h = h;
+
+    set_col(col, SDL_FALSE);
+
+    if (SDL_TRUE == fill)
+    {
+        if (SDL_RenderFillRect(state.renderer, &rect) != 0)
+        {
+            SDL_Log("Unable to fill rect: %s", SDL_GetError());
+        }
+    }
+
+    if (SDL_RenderDrawRect(state.renderer, &rect) != 0)
+    {
+        SDL_Log("Unable to draw rect: %s", SDL_GetError());
+    }
+
+    set_col(state.col, SDL_FALSE);
 }
 
 static void get_character_position(const unsigned char c, int* x, int* y)
@@ -292,16 +359,6 @@ static int load_texture_from_file(const char* file_name, SDL_Texture** texture)
 
 exit:
     return status;
-}
-
-static void put_pixel(int x, int y, int col)
-{
-    set_col(col, SDL_FALSE);
-    if (SDL_RenderDrawPoint(state.renderer, x, y) != 0)
-    {
-        SDL_Log("Unable to draw pixel: %s", SDL_GetError());
-    }
-    set_col(state.col, SDL_FALSE);
 }
 
 static void set_col(int col, SDL_bool update_state)
@@ -618,7 +675,43 @@ static int pset(lua_State* L)
         col = luaL_checkinteger(L, 3);
     }
 
-    put_pixel(x, y, col);
+    draw_pixel(x, y, col);
+
+    return 1;
+}
+
+static int rect(lua_State* L)
+{
+    int argc = lua_gettop(L);
+    int x0   = luaL_checkinteger(L, 1);
+    int y0   = luaL_checkinteger(L, 2);
+    int x1   = luaL_checkinteger(L, 3);
+    int y1   = luaL_checkinteger(L, 4);
+    int col  = state.col;
+
+    if (argc > 4)
+    {
+        col = luaL_checkinteger(L, 5);
+    }
+    draw_rect(x0, y0, x1, y1, col, SDL_FALSE);
+
+    return 1;
+}
+
+static int rectfill(lua_State* L)
+{
+    int argc = lua_gettop(L);
+    int x0   = luaL_checkinteger(L, 1);
+    int y0   = luaL_checkinteger(L, 2);
+    int x1   = luaL_checkinteger(L, 3);
+    int y1   = luaL_checkinteger(L, 4);
+    int col  = state.col;
+
+    if (argc > 4)
+    {
+        col = luaL_checkinteger(L, 5);
+    }
+    draw_rect(x0, y0, x1, y1, col, SDL_TRUE);
 
     return 1;
 }

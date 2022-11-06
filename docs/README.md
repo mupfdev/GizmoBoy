@@ -223,6 +223,45 @@ pset( x, y, [col] )
 > **col** The color value. If not specified, uses the current color of
 the draw state.
 
+
+### rect()
+
+Draws an empty rectangle shape.
+
+```lua
+rect( x0, y0, x1, y1, [col] )
+```
+
+> **x0** The x coordinate of the upper left corner.
+
+> **y0** The y coordinate of the upper left corner.
+
+> **x1** The x coordinate of the lower right corner.
+
+> **y1** The y coordinate of the lower right corner.
+
+> **col** The color of the rectangle border.  If omitted, the color from
+the draw state is used.
+
+### rectfill()
+
+Draws a filled-in rectangle shape.
+
+```lua
+rectfill( x0, y0, x1, y1, [col] )
+```
+
+> **x0** The x coordinate of the upper left corner.
+
+> **y0** The y coordinate of the upper left corner.
+
+> **x1** The x coordinate of the lower right corner.
+
+> **y1** The y coordinate of the lower right corner.
+
+> **col** The color of the rectangle border.  If omitted, the color from
+the draw state is used.
+
 ## Input
 
 ### `btn()`
@@ -281,3 +320,34 @@ btn( [i] )
 
 > **Return value** If a button is specified, then true or false,
 otherwise a bitfield.
+
+## Math
+
+### `max()`
+
+Returns the maximum of two numbers.
+
+```lua
+max( first, [second] )
+```
+
+> **first** The first number.
+
+> **second** The second number.  The default is **0**
+
+> **Return value** The maximum of two numbers.
+
+
+### `min()`
+
+Returns the minimum of two numbers.
+
+```lua
+min( first, [second] )
+```
+
+**first** The first number.
+
+**second** The second number.  The default is **0**.
+
+> **Return value** The minimum of two numbers.

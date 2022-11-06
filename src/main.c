@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
         goto exit;
     }
 
-    core_run_cartridge("demo.lua", core);
+    core_run_cartridge("squash.lua", core);
 
     while (SDL_TRUE == core->is_running)
     {
