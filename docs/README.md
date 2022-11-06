@@ -4,8 +4,15 @@ GizmoBoy games are written in Lua 5.4, please refer to the official Lua
 5.4 reference manual which can be found here: [Lua 5.4 Reference
 Manual](https://www.lua.org/manual/5.4/).
 
-!> Please note that the standard libraries are not available.  This
-limitation is intentional.
+!> Please note that most of the standard libraries are not available.
+This limitation is intentional.
+
+<details>
+<summary>Available standard libraries</summary>
+
+- <a href="https://www.lua.org/manual/5.3/manual.html#6.6">Table Manipulation</a>
+
+</details>
 
 ## The game loop
 

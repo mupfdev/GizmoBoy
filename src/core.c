@@ -25,6 +25,7 @@ int core_init(core_t **core)
     }
 
     (*core)->L = luaL_newstate();
+    luaopen_string((*core)->L);
 
     if (NULL != (*core)->L)
     {
