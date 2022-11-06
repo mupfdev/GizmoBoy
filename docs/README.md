@@ -224,7 +224,7 @@ pset( x, y, [col] )
 the draw state.
 
 
-### rect()
+### `rect()`
 
 Draws an empty rectangle shape.
 
@@ -243,7 +243,7 @@ rect( x0, y0, x1, y1, [col] )
 > **col** The color of the rectangle border.  If omitted, the color from
 the draw state is used.
 
-### rectfill()
+### `rectfill()`
 
 Draws a filled-in rectangle shape.
 
