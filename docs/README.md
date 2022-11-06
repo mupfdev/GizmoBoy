@@ -283,36 +283,50 @@ btn( [i] )
         <td>Number</td>
         <td>Button</td>
         <td>Mask</td>
+        <td>PC</td>
+        <td>N-Gage</td>
     </tr>
     <tr>
         <td>0</td>
         <td>LEFT</td>
         <td>0x0001</td>
+        <td>&#8592;</td>
+        <td>&#8592;</td>
     </tr>
     <tr>
         <td>1</td>
         <td>RIGHT</td>
         <td>0x0002</td>
+        <td>&#8594;</td>
+        <td>&#8594;</td>
     </tr>
     <tr>
         <td>2</td>
         <td>UP</td>
         <td>0x0004</td>
+        <td>&#8593;</td>
+        <td>&#8593;</td>
     </tr>
     <tr>
         <td>3</td>
         <td>DOWN</td>
         <td>0x0008</td>
+        <td>&#8595;</td>
+        <td>&#8595;</td>
     </tr>
     <tr>
         <td>4</td>
         <td>O</td>
         <td>0x0010</td>
+        <td>z</td>
+        <td>7</td>
     </tr>
     <tr>
         <td>5</td>
         <td>X</td>
         <td>0x0020</td>
+        <td>x</td>
+        <td>5</td>
     </tr>
 </table>
 
