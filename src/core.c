@@ -40,11 +40,13 @@ int core_init(core_t **core)
     return 0;
 }
 
-void core_update(core_t *core)
+int core_update(core_t *core)
 {
+    int status = 0;
+
     if (NULL == core)
     {
-        return;
+        return 0;
     }
 
     if (SDL_PollEvent(&core->event))
@@ -122,7 +124,14 @@ void core_update(core_t *core)
         {
             lua_pop(core->L, lua_gettop(core->L));
         }
+        else
+        {
+            status = -1;
+            SDL_Log("Error calling _update(): %s", lua_tostring(core->L,-1));
+        }
     }
+
+    return status;
 }
 
 int core_run_cartridge(const char *file_name, core_t *core)

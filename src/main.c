@@ -38,7 +38,11 @@ int main(int argc, char* argv[])
 
     while (SDL_TRUE == core->is_running)
     {
-        core_update(core);
+        if (core_update(core) != 0)
+        {
+            status = EXIT_FAILURE;
+            goto exit;
+        }
     }
 
 exit:

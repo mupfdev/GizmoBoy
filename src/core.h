@@ -22,8 +22,8 @@ typedef struct core
 } core_t;
 
 int  core_init(core_t **core);
-void core_update(core_t *core);
-void core_run_cartridge(const char *file_name, core_t *core);
+int  core_update(core_t *core);
+int  core_run_cartridge(const char *file_name, core_t *core);
 void core_deinit(core_t *core);
 
 #endif /* CORE_H */
