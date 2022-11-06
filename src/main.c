@@ -30,7 +30,11 @@ int main(int argc, char* argv[])
         goto exit;
     }
 
-    core_run_cartridge("squash.lua", core);
+    if (core_run_cartridge("squash.lua", core) != 0)
+    {
+        status = EXIT_FAILURE;
+        goto exit;
+    }
 
     while (SDL_TRUE == core->is_running)
     {

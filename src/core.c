@@ -125,8 +125,10 @@ void core_update(core_t *core)
     }
 }
 
-void core_run_cartridge(const char *file_name, core_t *core)
+int core_run_cartridge(const char *file_name, core_t *core)
 {
+    int status = 0;
+
     if (LUA_OK == luaL_dofile(core->L, file_name))
     {
         lua_pop(core->L, lua_gettop(core->L));
@@ -134,7 +136,10 @@ void core_run_cartridge(const char *file_name, core_t *core)
     else
     {
         SDL_Log("Could not load script '%s'", file_name);
+        status = -1;
     }
+
+    return status;
 }
 
 void core_deinit(core_t *core)
