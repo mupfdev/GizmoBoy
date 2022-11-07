@@ -28,6 +28,9 @@ typedef struct draw_state
     int           cur_x;
     int           cur_y;
     int           cur_margin;
+    int           line_endpoint_x;
+    int           line_endpoint_y;
+    SDL_bool      endpoint_validity;
 
 } draw_state_t;
 
@@ -35,11 +38,14 @@ static draw_state_t state = { 0 };
 
 static void draw_circ_sub(int xc, int yc, int x, int y, int col);
 static void draw_circ(int xc, int yc, int r, int col);
+static void draw_line(int x0, int y0, int x1, int y1, int col);
 static void draw_pixel(int x, int y, int col);
 static void draw_rect(int x0, int y0, int x1, int y1, int col, SDL_bool fill);
+static void draw_text(const char *str);
 static void get_character_position(const unsigned char character, int* pos_x, int* pos_y);
 static int  load_texture_from_file(const char* file_name, SDL_Texture** texture);
 static void set_col(int col, SDL_bool update_state);
+static void set_line_endpoint(int x, int y, SDL_bool validity);
 
 // API functions.
 static int circ(lua_State* L);
@@ -47,6 +53,7 @@ static int cls(lua_State* L);
 static int color(lua_State* L);
 static int cursor(lua_State* L);
 static int flip(lua_State* L);
+static int line(lua_State* L);
 static int print(lua_State* L);
 static int pset(lua_State* L);
 static int rect(lua_State* L);
@@ -157,6 +164,9 @@ void register_graphics_api(core_t* core)
     lua_pushcfunction(core->L, flip);
     lua_setglobal(core->L, "flip");
 
+    lua_pushcfunction(core->L, line);
+    lua_setglobal(core->L, "line");
+
     lua_pushcfunction(core->L, print);
     lua_setglobal(core->L, "print");
 
@@ -206,6 +216,14 @@ static void draw_circ(int xc, int yc, int r, int col)
             d = d + 4 * x + 6;
         }
         draw_circ_sub(xc, yc, x, y, col);
+    }
+}
+
+static void draw_line(int x0, int y0, int x1, int y1, int col)
+{
+    if (SDL_RenderDrawLine(state.renderer, x0, y0, x1, y1) != 0)
+    {
+        SDL_Log("Unable to draw line: %s", SDL_GetError());
     }
 }
 
@@ -264,6 +282,48 @@ static void draw_rect(int x0, int y0, int x1, int y1, int col, SDL_bool fill)
     }
 
     set_col(state.col, SDL_FALSE);
+}
+
+static void draw_text(const char *str)
+{
+    int      i = 0;
+    SDL_Rect src;
+    SDL_Rect dst;
+
+    src.x = 0;
+    src.y = 0;
+    src.w = 4;
+    src.h = 6;
+
+    dst.x = state.cur_x;
+    dst.y = state.cur_y;
+    dst.w = 4;
+    dst.h = 6;
+
+    if (NULL == str)
+    {
+        return;
+    }
+
+    while (str[i] != '\0')
+    {
+        get_character_position(str[i], &src.x, &src.y);
+
+        if ('\n' == str[i])
+        {
+            state.cur_y += 6;
+            dst.y        = state.cur_y;
+            state.cur_x  = state.cur_margin - 4;
+            dst.x        = state.cur_x;
+        }
+
+        i += 1;
+
+        SDL_RenderCopy(state.renderer, state.font, &src, &dst);
+
+        state.cur_x += 4;
+        dst.x        = state.cur_x;
+    }
 }
 
 static void get_character_position(const unsigned char c, int* x, int* y)
@@ -450,6 +510,13 @@ static void set_col(int col, SDL_bool update_state)
     }
 }
 
+static void set_line_endpoint(int x, int y, SDL_bool validity)
+{
+    state.line_endpoint_x   = x;
+    state.line_endpoint_x   = y;
+    state.endpoint_validity = validity;
+}
+
 // API functions.
 
 static int circ(lua_State* L)
@@ -571,14 +638,92 @@ static int flip(lua_State* L)
     return 1;
 }
 
+static int line(lua_State* L)
+{
+    int      argc              = lua_gettop(L);
+    int      x0                = -1;
+    int      y0                = -1;
+    int      x1                = -1;
+    int      y1                = -1;
+    int      col               = state.col;
+    SDL_bool call_draw_line    = SDL_FALSE;
+    SDL_bool endpoint_validity = SDL_FALSE;
+    SDL_bool set_color         = SDL_FALSE;
+
+    switch (argc)
+    {
+        case 0:
+            break;
+        case 1:
+            col       = luaL_checkinteger(L, 1);
+            set_color = SDL_TRUE;
+            break;
+        case 2:
+            x0 = state.line_endpoint_x;
+            y0 = state.line_endpoint_y;
+            x1 = luaL_checkinteger(L, 1);
+            y1 = luaL_checkinteger(L, 2);
+
+            if (SDL_TRUE == state.endpoint_validity)
+            {
+                call_draw_line = SDL_TRUE;
+            }
+
+            endpoint_validity = SDL_TRUE;
+            break;
+        case 3:
+            x0  = state.line_endpoint_x;
+            y0  = state.line_endpoint_y;
+            x1  = luaL_checkinteger(L, 1);
+            y1  = luaL_checkinteger(L, 2);
+            col = luaL_checkinteger(L, 3);
+
+            if (SDL_TRUE == state.endpoint_validity)
+            {
+                call_draw_line = SDL_TRUE;
+            }
+
+            set_color         = SDL_TRUE;
+            endpoint_validity = SDL_TRUE;
+            break;
+        case 4:
+            x0                = luaL_checkinteger(L, 1);
+            y0                = luaL_checkinteger(L, 2);
+            x1                = luaL_checkinteger(L, 3);
+            y1                = luaL_checkinteger(L, 4);
+            endpoint_validity = SDL_TRUE;
+            call_draw_line    = SDL_TRUE;
+            break;
+        default:
+        case 5:
+            x0                = luaL_checkinteger(L, 1);
+            y0                = luaL_checkinteger(L, 2);
+            x1                = luaL_checkinteger(L, 3);
+            y1                = luaL_checkinteger(L, 4);
+            col               = luaL_checkinteger(L, 5);
+            endpoint_validity = SDL_TRUE;
+            call_draw_line    = SDL_TRUE;
+            set_color         = SDL_TRUE;
+            break;
+    }
+
+    set_line_endpoint(x1, y1, endpoint_validity);
+
+    set_col(col, set_color);
+    if (SDL_TRUE == call_draw_line)
+    {
+        draw_line(x0, y0, x1, y1, col);
+    }
+    set_col(col, set_color);
+
+    return 1;
+}
+
 static int print(lua_State* L)
 {
     const char* str = luaL_checkstring(L, 1);
-    int         i   = 0;
     int         col;
     int         argc;
-    SDL_Rect    src;
-    SDL_Rect    dst;
     lua_Integer ret;
 
     if (NULL == str)
@@ -621,35 +766,7 @@ static int print(lua_State* L)
             break;
     }
 
-    src.x = 0;
-    src.y = 0;
-    src.w = 4;
-    src.h = 6;
-
-    dst.x = state.cur_x;
-    dst.y = state.cur_y;
-    dst.w = 4;
-    dst.h = 6;
-
-    while (str[i] != '\0')
-    {
-        get_character_position(str[i], &src.x, &src.y);
-
-        if ('\n' == str[i])
-        {
-            state.cur_y += 6;
-            dst.y        = state.cur_y;
-            state.cur_x  = state.cur_margin - 4;
-            dst.x        = state.cur_x;
-        }
-
-        i += 1;
-
-        SDL_RenderCopy(state.renderer, state.font, &src, &dst);
-
-        state.cur_x += 4;
-        dst.x        = state.cur_x;
-    }
+    draw_text(str);
 
     if (argc <= 1)
     {

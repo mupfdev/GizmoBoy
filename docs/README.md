@@ -14,6 +14,10 @@ This limitation is intentional.
 
 </details>
 
+## Calling functions
+
+
+
 ## The game loop
 
 The game loop is the mechanism that drives a game's logic and rendering
@@ -135,6 +139,78 @@ Copies the graphics buffer to the screen.
 
 ```lua
 flip( )
+```
+
+### `line()`
+
+Draws a line between two points.
+
+```lua
+line( [x0,] [y0,] [x1,] [y1,] [col] )
+```
+
+> **x0** The x coordinate of the start of the line. If omitted, the x
+coordinate of the end of the previous line is used, or **0** if no
+previous line has been drawn.
+
+> **y0** The y coordinate of the start of the line. If omitted, the y
+coordinate of the end of the previous line is used, or **0** if no
+previous line has been drawn.
+
+> **x1** The x coordinate of the end of the line.
+
+> **y1** The y coordinate of the end of the line.
+
+> **col** The color of the line. If omitted, the color from the draw
+state is used. This also sets the color in the draw state.
+
+The `line()` function is very versatile, with different operations
+depending on how many arguments are supplied.  Line segments, strips,
+and loops are all easily created with this function.
+
+This is how GizmoBoy interprets each possible set of arguments:
+
+Draws a line from (`x0, y0`) to (`x1, y1`) in the given color.
+Remembers (`x1, y1`) as the current endpoint and color as the current
+pen color:
+
+```lua
+line(x0, y0, x1, y1, col)
+```
+
+Draws a line from (`x0, y0`) to (`x1, y1`) in the current pen color.
+Remembers (`x1, y1`) as the current endpoint:
+
+```lua
+line(x0, y0, x1, y1)
+```
+
+Draws a line from the current endpoint to (`x1, y1`) in the given color.
+If there is no current endpoint, nothing is drawn. Remembers (`x1, y1`)
+as the current endpoint and color as the current pen color:
+
+```lua
+line(x1, y1, col)
+```
+
+Draws a line from the current endpoint to (`x1, y1`) in the current pen
+color.  If there is no current endpoint, nothing is drawn.  Remembers
+(`x1, y1`) as the current endpoint:
+
+```lua
+line(x1, y1)
+```
+
+Invalidates the current endpoint. Remembers color as the current pen color:
+
+```lua
+line(col)
+```
+
+Invalidates the current endpoint:
+
+```lua
+line()
 ```
 
 ### `print()`
