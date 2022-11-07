@@ -513,7 +513,7 @@ static void set_col(int col, SDL_bool update_state)
 static void set_line_endpoint(int x, int y, SDL_bool validity)
 {
     state.line_endpoint_x   = x;
-    state.line_endpoint_x   = y;
+    state.line_endpoint_y   = y;
     state.endpoint_validity = validity;
 }
 
