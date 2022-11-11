@@ -17,6 +17,14 @@
 #define WINDOW_FLAGS   SDL_WINDOW_FULLSCREEN
 #define RENDERER_FLAGS SDL_RENDERER_SOFTWARE | SDL_RENDERER_TARGETTEXTURE
 #define SCALE_FACTOR   1
+#define USE_VIEWPORT   1
+#define VIEWPORT_X     24
+#define VIEWPORT_Y     40
+#define VIEWPORT_W     128
+#define VIEWPORT_H     128
+
+#define APP_PATH       "E:\\System\\Apps\\GizmoBoy\\"
+#define PATH_SEP       "\\"
 
 #define KEYCODE_UP     SDLK_UP
 #define KEYCODE_DOWN   SDLK_DOWN

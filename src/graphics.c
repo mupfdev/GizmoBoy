@@ -10,6 +10,7 @@
 #include "SDL.h"
 #include "lua.h"
 #include "lauxlib.h"
+#include "dirent.h"
 #include "config.h"
 #include "core.h"
 #include "graphics.h"
@@ -27,21 +28,23 @@ typedef struct draw_state
     int           col;
     int           cur_x;
     int           cur_y;
-    int           cur_margin;
     int           line_endpoint_x;
     int           line_endpoint_y;
+    int           cur_margin;
     SDL_bool      endpoint_validity;
 
 } draw_state_t;
 
 static draw_state_t state = { 0 };
 
+static void clear_screen(int col);
 static void draw_circ_sub(int xc, int yc, int x, int y, int col);
 static void draw_circ(int xc, int yc, int r, int col);
 static void draw_line(int x0, int y0, int x1, int y1, int col);
-static void draw_pixel(int x, int y, int col);
+static void draw_pixel(int x, int y,  int col);
 static void draw_rect(int x0, int y0, int x1, int y1, int col, SDL_bool fill);
 static void draw_text(const char *str);
+static void flip_screen(void);
 static void get_character_position(const unsigned char character, int* pos_x, int* pos_y);
 static int  load_texture_from_file(const char* file_name, SDL_Texture** texture);
 static void set_col(int col, SDL_bool update_state);
@@ -116,7 +119,7 @@ int graphics_init(void)
         SDL_Log("Unable to set render target: %s", SDL_GetError());
     }
 
-    status = load_texture_from_file((const char*)"font.png", &state.font);
+    status = load_texture_from_file((const char*)APP_PATH "font.png", &state.font);
 
 exit:
     return status;
@@ -145,6 +148,78 @@ void graphics_deinit(void)
     }
 
     SDL_Quit();
+}
+
+int graphics_draw_menu(int cur_menu_item)
+{
+    DIR *dir;
+    int  margin_bak = state.cur_margin;
+    int  x_bak      = state.cur_x;
+    int  y_bak      = state.cur_y;
+    int  item_num   = 0;
+
+    clear_screen(8);
+
+    state.cur_margin = 2;
+    state.cur_x      = 2;
+    state.cur_y      = 2;
+    dir              = opendir(APP_PATH "carts" PATH_SEP);
+
+    if (NULL != dir)
+    {
+        struct dirent *ent;
+
+        while (NULL != (ent = readdir (dir)))
+        {
+            if ((SDL_strstr(ent->d_name, ".lua") != NULL) || (SDL_strstr(ent->d_name, ".LUA") != NULL))
+            {
+                if (item_num == cur_menu_item)
+                {
+                    draw_rect(2, state.cur_y, 6, state.cur_y + 6, 10, SDL_TRUE);
+                    state.cur_x = 8;
+                }
+                else
+                {
+                    state.cur_x = 2;
+                }
+
+                set_col(0, SDL_FALSE);
+                draw_text(ent->d_name);
+                set_col(state.col, SDL_FALSE);
+                state.cur_y += 6;
+
+                item_num += 1;
+
+                // Max carts. Needs to be fixed later.
+                if (20 == item_num)
+                {
+                    break;
+                }
+            }
+        }
+        closedir (dir);
+    }
+
+    if (0 == item_num)
+    {
+        clear_screen(8);
+
+        state.cur_margin = 38;
+        state.cur_x      = 38;
+        state.cur_y      = 54;
+
+        set_col(0, SDL_FALSE);
+        draw_text("No carts found");
+        set_col(state.col, SDL_FALSE);
+    }
+
+    flip_screen();
+
+    state.cur_margin = margin_bak;
+    state.cur_x      = x_bak;
+    state.cur_y      = y_bak;
+
+    return item_num;
 }
 
 void register_graphics_api(core_t* core)
@@ -178,6 +253,19 @@ void register_graphics_api(core_t* core)
 
     lua_pushcfunction(core->L, rectfill);
     lua_setglobal(core->L, "rectfill");
+}
+
+static void clear_screen(int col)
+{
+    state.cur_x = 0;
+    state.cur_y = 0;
+
+    set_col(col, SDL_FALSE);
+    if (state.renderer != NULL)
+    {
+        SDL_RenderClear(state.renderer);
+    }
+    set_col(state.col, SDL_FALSE);
 }
 
 // Draw pixels at subsequence points.
@@ -326,6 +414,35 @@ static void draw_text(const char *str)
     }
 }
 
+static void flip_screen(void)
+{
+#if USE_VIEWPORT == 1
+    SDL_Rect source = { 0, 0, 128, 128 };
+    SDL_Rect dest   = { VIEWPORT_X, VIEWPORT_Y, VIEWPORT_W, VIEWPORT_H };
+#endif
+
+    if (SDL_SetRenderTarget(state.renderer, NULL) != 0)
+    {
+        SDL_Log("Unable to set render target: %s", SDL_GetError());
+    }
+
+#if USE_VIEWPORT == 1
+    if (SDL_RenderCopy(state.renderer, state.render_target, &source, &dest) != 0)
+#else
+        if (SDL_RenderCopy(state.renderer, state.render_target, NULL, NULL) != 0)
+#endif
+        {
+            SDL_Log("Unable to copy render target: %s", SDL_GetError());
+        }
+
+    SDL_RenderPresent(state.renderer);
+
+    if (SDL_SetRenderTarget(state.renderer, state.render_target) != 0)
+    {
+        SDL_Log("Unable to set render target: %s", SDL_GetError());
+    }
+}
+
 static void get_character_position(const unsigned char c, int* x, int* y)
 {
     int i = 0;
@@ -348,7 +465,7 @@ static void get_character_position(const unsigned char c, int* x, int* y)
  */
 static int load_texture_from_file(const char* file_name, SDL_Texture** texture)
 {
-    int            status = 0;
+    int            status     = 0;
     SDL_Surface*   surface;
     int            width;
     int            height;
@@ -518,23 +635,22 @@ static void set_line_endpoint(int x, int y, SDL_bool validity)
 }
 
 // API functions.
-
 static int circ(lua_State* L)
 {
     int argc = lua_gettop(L);
-    int x    = luaL_checkinteger(L, 1);
-    int y    = luaL_checkinteger(L, 2);
+    int x    = (int)luaL_checkinteger(L, 1);
+    int y    = (int)luaL_checkinteger(L, 2);
     int r    = 4;
     int col  = state.col;
 
     if (argc > 2)
     {
-        r = luaL_checkinteger(L, 3);
+        r = (int)luaL_checkinteger(L, 3);
     }
 
     if (argc > 3)
     {
-        col = luaL_checkinteger(L, 4);
+        col = (int)luaL_checkinteger(L, 4);
     }
 
     draw_circ(x, y, r, col);
@@ -549,34 +665,26 @@ static int cls(lua_State* L)
 
     if (argc > 0)
     {
-        col = luaL_checkinteger(L, 1);
+        col = (int)luaL_checkinteger(L, 1);
     }
     else
     {
         col = 0;
     }
 
-    state.cur_x = 0;
-    state.cur_y = 0;
-
-    set_col(col, SDL_FALSE);
-    if (state.renderer != NULL)
-    {
-        SDL_RenderClear(state.renderer);
-    }
-    set_col(state.col, SDL_FALSE);
+    clear_screen(col);
 
     return 1;
 }
 
 static int color(lua_State* L)
 {
-    int         argc = lua_gettop(L);
-    lua_Integer ret  = (lua_Integer)state.col;
+    int argc = lua_gettop(L);
+    int ret  = (int)state.col;
 
     if (argc > 0)
     {
-        state.col = luaL_checkinteger(L, 1);
+        state.col = (int)luaL_checkinteger(L, 1);
     }
     else
     {
@@ -589,26 +697,26 @@ static int color(lua_State* L)
 
 static int cursor(lua_State* L)
 {
-    int col;
     int argc = lua_gettop(L);
+    int col;
 
     switch (argc)
     {
         case 1:
-            state.cur_x      = luaL_checkinteger(L, 1);
+            state.cur_x      = (int)luaL_checkinteger(L, 1);
             state.cur_y      = 0;
             state.cur_margin = state.cur_x;
             break;
         case 2:
-            state.cur_x      = luaL_checkinteger(L, 1);
-            state.cur_y      = luaL_checkinteger(L, 2);
+            state.cur_x      = (int)luaL_checkinteger(L, 1);
+            state.cur_y      = (int)luaL_checkinteger(L, 2);
             state.cur_margin = state.cur_x;
             break;
         case 3:
-            state.cur_x      = luaL_checkinteger(L, 1);
-            state.cur_y      = luaL_checkinteger(L, 2);
+            state.cur_x      = (int)luaL_checkinteger(L, 1);
+            state.cur_y      = (int)luaL_checkinteger(L, 2);
             state.cur_margin = state.cur_x;
-            col              = luaL_checkinteger(L, 3);
+            col              = (int)luaL_checkinteger(L, 3);
             set_col(col, SDL_TRUE);
             break;
     }
@@ -618,23 +726,7 @@ static int cursor(lua_State* L)
 
 static int flip(lua_State* L)
 {
-    if (SDL_SetRenderTarget(state.renderer, NULL) != 0)
-    {
-        SDL_Log("Unable to set render target: %s", SDL_GetError());
-    }
-
-    if (SDL_RenderCopy(state.renderer, state.render_target, NULL, NULL) != 0)
-    {
-        SDL_Log("Unable to copy render target: %s", SDL_GetError());
-    }
-
-    SDL_RenderPresent(state.renderer);
-
-    if (SDL_SetRenderTarget(state.renderer, state.render_target) != 0)
-    {
-        SDL_Log("Unable to set render target: %s", SDL_GetError());
-    }
-
+    flip_screen();
     return 1;
 }
 
@@ -655,14 +747,14 @@ static int line(lua_State* L)
         case 0:
             break;
         case 1:
-            col       = luaL_checkinteger(L, 1);
+            col       = (int)luaL_checkinteger(L, 1);
             set_color = SDL_TRUE;
             break;
         case 2:
             x0 = state.line_endpoint_x;
             y0 = state.line_endpoint_y;
-            x1 = luaL_checkinteger(L, 1);
-            y1 = luaL_checkinteger(L, 2);
+            x1 = (int)luaL_checkinteger(L, 1);
+            y1 = (int)luaL_checkinteger(L, 2);
 
             if (SDL_TRUE == state.endpoint_validity)
             {
@@ -674,9 +766,9 @@ static int line(lua_State* L)
         case 3:
             x0  = state.line_endpoint_x;
             y0  = state.line_endpoint_y;
-            x1  = luaL_checkinteger(L, 1);
-            y1  = luaL_checkinteger(L, 2);
-            col = luaL_checkinteger(L, 3);
+            x1  = (int)luaL_checkinteger(L, 1);
+            y1  = (int)luaL_checkinteger(L, 2);
+            col = (int)luaL_checkinteger(L, 3);
 
             if (SDL_TRUE == state.endpoint_validity)
             {
@@ -687,20 +779,20 @@ static int line(lua_State* L)
             endpoint_validity = SDL_TRUE;
             break;
         case 4:
-            x0                = luaL_checkinteger(L, 1);
-            y0                = luaL_checkinteger(L, 2);
-            x1                = luaL_checkinteger(L, 3);
-            y1                = luaL_checkinteger(L, 4);
+            x0                = (int)luaL_checkinteger(L, 1);
+            y0                = (int)luaL_checkinteger(L, 2);
+            x1                = (int)luaL_checkinteger(L, 3);
+            y1                = (int)luaL_checkinteger(L, 4);
             endpoint_validity = SDL_TRUE;
             call_draw_line    = SDL_TRUE;
             break;
         default:
         case 5:
-            x0                = luaL_checkinteger(L, 1);
-            y0                = luaL_checkinteger(L, 2);
-            x1                = luaL_checkinteger(L, 3);
-            y1                = luaL_checkinteger(L, 4);
-            col               = luaL_checkinteger(L, 5);
+            x0                = (int)luaL_checkinteger(L, 1);
+            y0                = (int)luaL_checkinteger(L, 2);
+            x1                = (int)luaL_checkinteger(L, 3);
+            y1                = (int)luaL_checkinteger(L, 4);
+            col               = (int)luaL_checkinteger(L, 5);
             endpoint_validity = SDL_TRUE;
             call_draw_line    = SDL_TRUE;
             set_color         = SDL_TRUE;
@@ -722,9 +814,9 @@ static int line(lua_State* L)
 static int print(lua_State* L)
 {
     const char* str = luaL_checkstring(L, 1);
-    int         col;
     int         argc;
-    lua_Integer ret;
+    int         col;
+    int         ret;
 
     if (NULL == str)
     {
@@ -749,19 +841,19 @@ static int print(lua_State* L)
                 state.cur_margin = state.cur_x;
             }
             state.cur_x = state.cur_margin;
-            col         = luaL_checkinteger(L, 1);
+            col         = (int)luaL_checkinteger(L, 1);
             set_col(col, SDL_TRUE);
             break;
         case 2:
-            state.cur_x      = luaL_checkinteger(L, 1);
-            state.cur_y      = luaL_checkinteger(L, 2);
+            state.cur_x      = (int)luaL_checkinteger(L, 1);
+            state.cur_y      = (int)luaL_checkinteger(L, 2);
             state.cur_margin = state.cur_x;
             break;
         case 3:
-            state.cur_x      = luaL_checkinteger(L, 1);
-            state.cur_y      = luaL_checkinteger(L, 2);
+            state.cur_x      = (int)luaL_checkinteger(L, 1);
+            state.cur_y      = (int)luaL_checkinteger(L, 2);
             state.cur_margin = state.cur_x;
-            col              = luaL_checkinteger(L, 3);
+            col              = (int)luaL_checkinteger(L, 3);
             set_col(col, SDL_FALSE);
             break;
     }
@@ -783,13 +875,13 @@ static int print(lua_State* L)
 static int pset(lua_State* L)
 {
     int argc = lua_gettop(L);
-    int x    = luaL_checkinteger(L, 1);
-    int y    = luaL_checkinteger(L, 2);
+    int x    = (int)luaL_checkinteger(L, 1);
+    int y    = (int)luaL_checkinteger(L, 2);
     int col  = state.col;
 
     if (argc > 2)
     {
-        col = luaL_checkinteger(L, 3);
+        col = (int)luaL_checkinteger(L, 3);
     }
 
     draw_pixel(x, y, col);
@@ -800,15 +892,15 @@ static int pset(lua_State* L)
 static int rect(lua_State* L)
 {
     int argc = lua_gettop(L);
-    int x0   = luaL_checkinteger(L, 1);
-    int y0   = luaL_checkinteger(L, 2);
-    int x1   = luaL_checkinteger(L, 3);
-    int y1   = luaL_checkinteger(L, 4);
+    int x0   = (int)luaL_checkinteger(L, 1);
+    int y0   = (int)luaL_checkinteger(L, 2);
+    int x1   = (int)luaL_checkinteger(L, 3);
+    int y1   = (int)luaL_checkinteger(L, 4);
     int col  = state.col;
 
     if (argc > 4)
     {
-        col = luaL_checkinteger(L, 5);
+        col = (int)luaL_checkinteger(L, 5);
     }
     draw_rect(x0, y0, x1, y1, col, SDL_FALSE);
 
@@ -818,15 +910,15 @@ static int rect(lua_State* L)
 static int rectfill(lua_State* L)
 {
     int argc = lua_gettop(L);
-    int x0   = luaL_checkinteger(L, 1);
-    int y0   = luaL_checkinteger(L, 2);
-    int x1   = luaL_checkinteger(L, 3);
-    int y1   = luaL_checkinteger(L, 4);
+    int x0   = (int)luaL_checkinteger(L, 1);
+    int y0   = (int)luaL_checkinteger(L, 2);
+    int x1   = (int)luaL_checkinteger(L, 3);
+    int y1   = (int)luaL_checkinteger(L, 4);
     int col  = state.col;
 
     if (argc > 4)
     {
-        col = luaL_checkinteger(L, 5);
+        col = (int)luaL_checkinteger(L, 5);
     }
     draw_rect(x0, y0, x1, y1, col, SDL_TRUE);
 

@@ -7,10 +7,17 @@ cmake_minimum_required(VERSION 3.10)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Use CMake or Visual Studio to enable these settings.
-option(INCLUDE_SDL2_MIXER "Include SDL2_mixer" OFF)
+option(BUILD_FOR_NOKIA_NGAGE "Build for the Nokia N-Gage" OFF)
+option(INCLUDE_SDL2_MIXER    "Include SDL2_mixer"         OFF)
+
+if(BUILD_FOR_NOKIA_NGAGE)
+  include(Nokia_N-Gage)
+  return()
+endif()
 
 include(project_config)
 include(get_SDL2)
+include(get_dirent)
 
 project(${PROJECT_TITLE} C CXX)
 
@@ -22,6 +29,7 @@ get_SDL2("2.24.1")
 if (INCLUDE_SDL2_MIXER)
   get_SDL2_mixer("2.6.2")
 endif()
+get_dirent("1.23.2")
 
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 
@@ -79,7 +87,8 @@ target_include_directories(
   PRIVATE
   ${SDL2_INCLUDE_DIRS}
   PRIVATE
-  ${LUA_INCLUDE_DIR})
+  ${LUA_INCLUDE_DIR}
+  ${DIRENT_INCLUDE_DIR})
 
 if (INCLUDE_SDL2_MIXER)
   target_link_libraries(

@@ -17,7 +17,7 @@ padh = 4
 ballx    = 64
 bally    = 64
 ballsize = 3
-ballxdir = 2
+ballxdir = 3
 ballydir = -1
 
 function movepaddle()

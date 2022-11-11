@@ -13,17 +13,29 @@
 #include "SDL.h"
 #include "lua.h"
 
+typedef enum status
+{
+    CORE_OK      = 0,
+    CORE_QUIT    = 1,
+    CORE_WARNING = -1,
+    CORE_ERROR   = -2
+
+} status_t;
+
 typedef struct core
 {
     lua_State *L;
     SDL_Event  event;
     SDL_bool   is_running;
+    SDL_bool   is_menu;
+    int        cur_menu_item;
+    int        menu_item_count;
 
 } core_t;
 
 int  core_init(core_t **core);
 int  core_update(core_t *core);
-int  core_run_cartridge(const char *file_name, core_t *core);
+void core_run_cartridge(core_t *core);
 void core_deinit(core_t *core);
 
 #endif /* CORE_H */

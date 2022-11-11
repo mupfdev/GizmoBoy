@@ -1,0 +1,42 @@
+/** @file launcher.rss
+ *
+ *  A simple SDL 2.0.x sample project.
+ *
+ *  Do not modify this file unless absolutely necessary.
+ *  All project-specific settings can be found in the file:
+ *  project_config.cmake
+ *
+ *  To the extent possible under law, Michael Fitzmayer has waived all
+ *  copyright and related or neighboring rights to SDLexample.  This
+ *  work is published from: Germany.
+ *
+ *  CC0 http://creativecommons.org/publicdomain/zero/1.0/
+ *  SPDX-License-Identifier: CC0-1.0
+ *
+ **/
+
+NAME NWIZ
+
+#include <eikon.rh>
+#include <avkon.rsg>
+#include <avkon.rh>
+#include <avkon.mbg>
+#include <avkon.loc>
+
+RESOURCE RSS_SIGNATURE {}
+
+RESOURCE TBUF
+{
+    buf = APP_NAME;
+}
+
+RESOURCE EIK_APP_INFO
+{
+    status_pane = r_status_pane_none;
+    cba = R_AVKON_SOFTKEYS_BACK;
+}
+
+RESOURCE STATUS_PANE_APP_MODEL r_status_pane_none
+{
+    layout = R_AVKON_STATUS_PANE_LAYOUT_EMPTY;
+}

@@ -9,7 +9,7 @@
       "cmakeCommandArgs": "",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
-      "inheritEnvironments": [ "clang_cl_x64" ],
+      "inheritEnvironments": [ "msvc_x64_x64" ],
       "variables": [
         {
           "name": "INCLUDE_SDL2_MIXER",
@@ -27,11 +27,29 @@
       "cmakeCommandArgs": "",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
-      "inheritEnvironments": [ "clang_cl_x64" ],
+      "inheritEnvironments": [ "msvc_x64_x64" ],
       "variables": [
         {
           "name": "INCLUDE_SDL2_MIXER",
           "value": "False",
+          "type": "BOOL"
+        },
+      ]
+    },
+    {
+      "name": "N-Gage",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "-DBUILD_FOR_NOKIA_NGAGE=ON",
+      "buildCommandArgs": "-v",
+      "ctestCommandArgs": "",
+      "variables": [
+        {
+          "name": "GENERATE_SIS",
+          "value": "True",
           "type": "BOOL"
         }
       ]

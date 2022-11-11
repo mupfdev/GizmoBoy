@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include "SDL.h"
 #include "SDL_main.h"
+#include "config.h"
 #include "core.h"
 #include "graphics.h"
 
@@ -18,19 +19,13 @@ int main(int argc, char* argv[])
     int     status = EXIT_SUCCESS;
     core_t* core   = NULL;
 
-    if (core_init(&core) != 0)
-    {
-        status = EXIT_FAILURE;
-        goto exit;
-    }
-
     if (graphics_init() != 0)
     {
         status = EXIT_FAILURE;
         goto exit;
     }
 
-    if (core_run_cartridge("squash.lua", core) != 0)
+    if (core_init(&core) != 0)
     {
         status = EXIT_FAILURE;
         goto exit;
@@ -38,15 +33,28 @@ int main(int argc, char* argv[])
 
     while (SDL_TRUE == core->is_running)
     {
-        if (core_update(core) != 0)
+        status_t core_status = CORE_OK;
+
+        core_status = core_update(core);
+
+        switch(core_status)
         {
-            status = EXIT_FAILURE;
-            goto exit;
+            default:
+            case CORE_OK:
+            case CORE_WARNING:
+                break;
+            case CORE_QUIT:
+                core->is_running = SDL_FALSE;
+                break;
+            case CORE_ERROR:
+                core->is_running = SDL_FALSE;
+                status           = EXIT_FAILURE;
         }
     }
 
 exit:
-    graphics_deinit();
     core_deinit(core);
+    graphics_deinit();
+
     return status;
 }

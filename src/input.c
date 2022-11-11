@@ -37,9 +37,9 @@ void register_input_api(core_t* core)
 // API functions.
 static int btn(lua_State* L)
 {
-    int         argc = lua_gettop(L);
-    lua_Integer ret  = input_state;
-    int         i    = luaL_checkinteger(L, 1);
+    int argc = lua_gettop(L);
+    int ret  = input_state;
+    int i    = (int)luaL_checkinteger(L, 1);
 
     if (i < 0)
     {

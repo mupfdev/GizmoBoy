@@ -410,34 +410,3 @@ btn( [i] )
 
 > **Return value** If a button is specified, then true or false,
 otherwise a bitfield.
-
-## Math
-
-### `max()`
-
-Returns the maximum of two numbers.
-
-```lua
-max( first, [second] )
-```
-
-> **first** The first number.
-
-> **second** The second number.  The default is **0**
-
-> **Return value** The maximum of two numbers.
-
-
-### `min()`
-
-Returns the minimum of two numbers.
-
-```lua
-min( first, [second] )
-```
-
-**first** The first number.
-
-**second** The second number.  The default is **0**.
-
-> **Return value** The minimum of two numbers.
