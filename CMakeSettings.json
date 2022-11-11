@@ -33,7 +33,7 @@
           "name": "INCLUDE_SDL2_MIXER",
           "value": "False",
           "type": "BOOL"
-        },
+        }
       ]
     },
     {

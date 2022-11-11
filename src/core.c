@@ -179,7 +179,6 @@ int core_update(core_t *core)
 void core_run_cartridge(core_t *core)
 {
     DIR *dir;
-    int  item_num = 0;
 
     if (NULL == core)
     {
@@ -196,6 +195,8 @@ void core_run_cartridge(core_t *core)
         {
             if ((SDL_strstr(ent->d_name, ".lua") != NULL) || (SDL_strstr(ent->d_name, ".LUA") != NULL))
             {
+                int item_num = 0;
+
                 if (item_num == core->cur_menu_item)
                 {
                     char file_name[256] = { 0 };
