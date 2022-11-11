@@ -17,7 +17,9 @@ endif()
 
 include(project_config)
 include(get_SDL2)
-include(get_dirent)
+if(WIN32)
+  include(get_dirent)
+endif()
 
 project(${PROJECT_TITLE} C CXX)
 
@@ -29,7 +31,9 @@ get_SDL2("2.24.1")
 if (INCLUDE_SDL2_MIXER)
   get_SDL2_mixer("2.6.2")
 endif()
-get_dirent("1.23.2")
+if(WIN32)
+  get_dirent("1.23.2")
+endif()
 
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 
