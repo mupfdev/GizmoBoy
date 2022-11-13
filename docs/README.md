@@ -4,19 +4,15 @@ GizmoBoy games are written in Lua 5.4, please refer to the official Lua
 5.4 reference manual which can be found here: [Lua 5.4 Reference
 Manual](https://www.lua.org/manual/5.4/).
 
-!> Please note that most of the standard libraries are not available.
-This limitation is intentional.
-
 <details>
 <summary>Available standard libraries</summary>
 
+- <a href="https://www.lua.org/manual/5.3/manual.html#6.1">Basic Functions</a>
+- <a href="https://www.lua.org/manual/5.3/manual.html#6.4">String Manipulation</a>
 - <a href="https://www.lua.org/manual/5.3/manual.html#6.6">Table Manipulation</a>
+- <a href="https://www.lua.org/manual/5.3/manual.html#6.7">Mathematical Functions</a>
 
 </details>
-
-## Calling functions
-
-
 
 ## The game loop
 
@@ -26,7 +22,32 @@ important for the loop to run at regular intervals to keep the animation
 smooth and the game feeling responsive to user input.
 
 GizmoBoy has a built-in game loop.  You use this in your code by
-defining the function: `_update()`
+defining three functions: `_init()`, `_update()`, and `_draw()`.
+
+### `_init()`
+
+```lua
+_init( )
+```
+
+The `_init()` function is called by GizmoBoy to initialize a cartridge.
+
+In typical usage, a cartridge's source code includes definitions for
+functions and variables, an `_init()` function, and then an `_update()`
+function and `_draw()` function for the game loop.  GizmoBoy calls
+`_init()` once before starting the game loop.
+
+?> You define this function in your game's source code.  It takes no
+arguments.
+
+Example:
+
+```lua
+function _init()
+  player_x = 64
+  player_y = 100
+end
+```
 
 ### `_update()`
 
@@ -48,6 +69,21 @@ function _update()
     flip()
 end
 ```
+
+### `draw()`
+
+The _draw() function is the second part of the game loop.
+
+```lua
+_draw( )
+```
+
+If a cartridge's source code includes both an `_update()` function and a
+`_draw()` function, then GizmoBoy will attempt to call these functions
+once for each animation frame.
+
+?> You define this function in your game's source code. It takes no
+arguments.
 
 ## Graphics
 

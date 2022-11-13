@@ -24,6 +24,7 @@ typedef struct draw_state
     SDL_Renderer *renderer;
     SDL_Texture  *render_target;
     SDL_Texture  *font;
+    SDL_Texture  *frame;
     Uint8         buffer[0x3c00];
     int           col;
     int           cur_x;
@@ -40,6 +41,7 @@ static draw_state_t state = { 0 };
 static void clear_screen(int col);
 static void draw_circ_sub(int xc, int yc, int x, int y, int col);
 static void draw_circ(int xc, int yc, int r, int col);
+static void draw_frame(void);
 static void draw_line(int x0, int y0, int x1, int y1, int col);
 static void draw_pixel(int x, int y,  int col);
 static void draw_rect(int x0, int y0, int x1, int y1, int col, SDL_bool fill);
@@ -77,8 +79,8 @@ int graphics_init(void)
         "GizmoBoy",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        WINDOW_WIDTH  * SCALE_FACTOR,
-        WINDOW_HEIGHT * SCALE_FACTOR,
+        WINDOW_WIDTH,
+        WINDOW_HEIGHT,
         WINDOW_FLAGS);
 
     if (NULL == state.window)
@@ -104,8 +106,8 @@ int graphics_init(void)
         state.renderer,
         SDL_PIXELFORMAT_RGB444,
         SDL_TEXTUREACCESS_TARGET,
-        WINDOW_WIDTH,
-        WINDOW_HEIGHT);
+        128,
+        128);
 
     if (NULL == state.render_target)
     {
@@ -114,19 +116,55 @@ int graphics_init(void)
         goto exit;
     }
 
+    status = load_texture_from_file((const char*)APP_PATH "" VIEWPORT_FRAME, &state.frame);
+    if (status != 0)
+    {
+        goto exit;
+    }
+    draw_frame();
+
     if (SDL_SetRenderTarget(state.renderer, state.render_target) != 0)
     {
         SDL_Log("Unable to set render target: %s", SDL_GetError());
+        status = -5;
+        goto exit;
     }
 
     status = load_texture_from_file((const char*)APP_PATH "font.png", &state.font);
+    if (status != 0)
+    {
+        goto exit;
+    }
 
 exit:
     return status;
 }
 
+void graphics_update(core_t* core)
+{
+    lua_getglobal(core->L, "_draw");
+    if (lua_isfunction(core->L, -1))
+    {
+        if (LUA_OK == lua_pcall(core->L, 0, 1, 0))
+        {
+            lua_pop(core->L, lua_gettop(core->L));
+        }
+        else
+        {
+            SDL_Log("Error calling _draw(): %s", lua_tostring(core->L,-1));
+        }
+    }
+
+    flip_screen();
+}
+
 void graphics_deinit(void)
 {
+    if (state.frame != NULL)
+    {
+        SDL_DestroyTexture(state.frame);
+    }
+
     if (state.font != NULL)
     {
         SDL_DestroyTexture(state.font);
@@ -150,32 +188,50 @@ void graphics_deinit(void)
     SDL_Quit();
 }
 
-int graphics_draw_menu(int cur_menu_item)
+int graphics_draw_menu(int cur_menu_index)
 {
-    DIR *dir;
-    int  margin_bak = state.cur_margin;
-    int  x_bak      = state.cur_x;
-    int  y_bak      = state.cur_y;
-    int  item_num   = 0;
+    DIR  *dir;
+    char *title      = "GizmoBoy";
+    int   margin_bak = state.cur_margin;
+    int   x_bak      = state.cur_x;
+    int   y_bak      = state.cur_y;
+    int   item_index = -1;
+    int   i;
 
-    clear_screen(8);
+    clear_screen(0);
 
     state.cur_margin = 2;
     state.cur_x      = 2;
     state.cur_y      = 2;
+
+    for (i = 0; i < SDL_strlen(title); i += 1)
+    {
+        char draw_chr[2] = { 0 };
+
+        SDL_snprintf(draw_chr, sizeof(draw_chr), "%c", title[i]);
+        set_col(8 + i, SDL_FALSE);
+        draw_text((const char*)draw_chr);
+        set_col(state.col, SDL_FALSE);
+    }
+
+    state.cur_margin = 2;
+    state.cur_x      = 2;
+    state.cur_y      = 12;
     dir              = opendir(APP_PATH "carts" PATH_SEP);
 
     if (NULL != dir)
     {
         struct dirent *ent;
 
-        while (NULL != (ent = readdir (dir)))
+        while (NULL != (ent = readdir(dir)))
         {
             if ((SDL_strstr(ent->d_name, ".lua") != NULL) || (SDL_strstr(ent->d_name, ".LUA") != NULL))
             {
-                if (item_num == cur_menu_item)
+                item_index += 1;
+
+                if (item_index == cur_menu_index)
                 {
-                    draw_rect(2, state.cur_y, 6, state.cur_y + 6, 10, SDL_TRUE);
+                    draw_rect(2, state.cur_y, 6, state.cur_y + 6, 14, SDL_TRUE);
                     state.cur_x = 8;
                 }
                 else
@@ -183,15 +239,13 @@ int graphics_draw_menu(int cur_menu_item)
                     state.cur_x = 2;
                 }
 
-                set_col(0, SDL_FALSE);
+                set_col(7, SDL_FALSE);
                 draw_text(ent->d_name);
                 set_col(state.col, SDL_FALSE);
                 state.cur_y += 6;
 
-                item_num += 1;
-
                 // Max carts. Needs to be fixed later.
-                if (20 == item_num)
+                if (20 == item_index)
                 {
                     break;
                 }
@@ -200,15 +254,15 @@ int graphics_draw_menu(int cur_menu_item)
         closedir (dir);
     }
 
-    if (0 == item_num)
+    if (-1 == item_index)
     {
-        clear_screen(8);
+        clear_screen(0);
 
         state.cur_margin = 38;
         state.cur_x      = 38;
         state.cur_y      = 54;
 
-        set_col(0, SDL_FALSE);
+        set_col(8, SDL_FALSE);
         draw_text("No carts found");
         set_col(state.col, SDL_FALSE);
     }
@@ -219,7 +273,7 @@ int graphics_draw_menu(int cur_menu_item)
     state.cur_x      = x_bak;
     state.cur_y      = y_bak;
 
-    return item_num;
+    return item_index;
 }
 
 void register_graphics_api(core_t* core)
@@ -304,6 +358,14 @@ static void draw_circ(int xc, int yc, int r, int col)
             d = d + 4 * x + 6;
         }
         draw_circ_sub(xc, yc, x, y, col);
+    }
+}
+
+static void draw_frame(void)
+{
+    if (SDL_RenderCopy(state.renderer, state.frame, NULL, NULL) != 0)
+    {
+        SDL_Log("Unable to copy render target: %s", SDL_GetError());
     }
 }
 
@@ -416,24 +478,18 @@ static void draw_text(const char *str)
 
 static void flip_screen(void)
 {
-#if USE_VIEWPORT == 1
     SDL_Rect source = { 0, 0, 128, 128 };
     SDL_Rect dest   = { VIEWPORT_X, VIEWPORT_Y, VIEWPORT_W, VIEWPORT_H };
-#endif
 
     if (SDL_SetRenderTarget(state.renderer, NULL) != 0)
     {
         SDL_Log("Unable to set render target: %s", SDL_GetError());
     }
 
-#if USE_VIEWPORT == 1
     if (SDL_RenderCopy(state.renderer, state.render_target, &source, &dest) != 0)
-#else
-        if (SDL_RenderCopy(state.renderer, state.render_target, NULL, NULL) != 0)
-#endif
-        {
-            SDL_Log("Unable to copy render target: %s", SDL_GetError());
-        }
+    {
+        SDL_Log("Unable to copy render target: %s", SDL_GetError());
+    }
 
     SDL_RenderPresent(state.renderer);
 

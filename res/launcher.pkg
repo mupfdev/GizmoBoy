@@ -4,7 +4,7 @@
 &EN
 
 ; standard SIS file header
-#{"GizmoBoy"},(0x1000c918),0,0,1
+#{"GizmoBoy"},(0x1000c918),0,1,0
 
 ;Supports Series 60 v 0.9
 (0x101F6F88), 0, 0, 0, {"Series60ProductID"}
@@ -14,4 +14,5 @@
 "..\out\build\N-Gage\launcher.app"-"E:\System\Apps\GizmoBoy\GizmoBoy.app"
 "..\out\build\N-Gage\launcher.rsc"-"E:\System\Apps\GizmoBoy\GizmoBoy.rsc"
 "..\export\font.png"-"E:\System\Apps\GizmoBoy\font.png"
+"..\export\frame-176x208.png"-"E:\System\Apps\GizmoBoy\frame-176x208.png"
 "..\export\carts\squash.lua"-"E:\System\Apps\GizmoBoy\carts\squash.lua"

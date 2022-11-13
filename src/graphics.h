@@ -14,8 +14,9 @@
 #include "core.h"
 
 int  graphics_init(void);
+void graphics_update(core_t* core);
 void graphics_deinit(void);
-int  graphics_draw_menu(int cur_menu_item);
+int  graphics_draw_menu(int cur_menu_index);
 void register_graphics_api(core_t* core);
 
 #endif /* GRAPHICS_H */

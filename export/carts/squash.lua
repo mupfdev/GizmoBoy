@@ -76,16 +76,16 @@ function _update()
     bouncepaddle()
     moveball()
     losedeadball()
+end
 
+function _draw()
     cls(11)
     print("Score: ", 2, 2, 0)
     print(score, 30, 2, 0)
     -- Draw the paddle
-    rectfill(padx, pady, padx+padw, pady+padh, 3)
+    rectfill(padx, pady, padx + padw, pady + padh, 3)
     -- Draw the ball
     for s = ballsize, 0, -1 do
         circ(ballx, bally, s, 3)
     end
-
-    flip()
 end

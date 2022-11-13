@@ -27,9 +27,9 @@ int core_init(core_t **core)
 
     (*core)->L = luaL_newstate();
     luaopen_base((*core)->L);
-    luaopen_math((*core)->L);
     luaopen_string((*core)->L);
     luaopen_table((*core)->L);
+    luaopen_math((*core)->L);
 
     if (NULL != (*core)->L)
     {
@@ -52,18 +52,9 @@ int core_update(core_t *core)
         return status;
     }
 
-    if (core->cur_menu_item >= core->menu_item_count)
-    {
-        core->cur_menu_item = 0;
-    }
-    else if (core->cur_menu_item < 0)
-    {
-        core->cur_menu_item = core->menu_item_count - 1;
-    }
-
     if (SDL_TRUE == core->is_menu)
     {
-        core->menu_item_count = graphics_draw_menu(core->cur_menu_item);
+        core->menu_item_max_index = graphics_draw_menu(core->cur_menu_index);
     }
 
     if (SDL_PollEvent(&core->event))
@@ -89,14 +80,14 @@ int core_update(core_t *core)
                     case KEYCODE_UP:
                         if (SDL_TRUE == core->is_menu)
                         {
-                            core->cur_menu_item -= 1;
+                            core->cur_menu_index -= 1;
                         }
                         button_state |= 1ul << BUTTON_UP;
                         break;
                     case KEYCODE_DOWN:
                         if (SDL_TRUE == core->is_menu)
                         {
-                            core->cur_menu_item += 1;
+                            core->cur_menu_index += 1;
                         }
                         button_state |= 1ul << BUTTON_DOWN;
                         break;
@@ -156,6 +147,15 @@ int core_update(core_t *core)
         input_set_buttons(button_state);
     }
 
+    if (core->cur_menu_index > core->menu_item_max_index)
+    {
+        core->cur_menu_index = 0;
+    }
+    else if (core->cur_menu_index < 0)
+    {
+        core->cur_menu_index = core->menu_item_max_index;
+    }
+
     if (SDL_FALSE == core->is_menu)
     {
         lua_getglobal(core->L, "_update");
@@ -171,6 +171,7 @@ int core_update(core_t *core)
                 SDL_Log("Error calling _update(): %s", lua_tostring(core->L,-1));
             }
         }
+        graphics_update(core);
     }
 
     return status;
@@ -190,14 +191,15 @@ void core_run_cartridge(core_t *core)
     if (NULL != dir)
     {
         struct dirent *ent;
+        int            item_index = -1;
 
         while (NULL != (ent = readdir (dir)))
         {
             if ((SDL_strstr(ent->d_name, ".lua") != NULL) || (SDL_strstr(ent->d_name, ".LUA") != NULL))
             {
-                int item_num = 0;
+                item_index += 1;
 
-                if (item_num == core->cur_menu_item)
+                if (item_index == core->cur_menu_index)
                 {
                     char file_name[256] = { 0 };
 
@@ -215,16 +217,27 @@ void core_run_cartridge(core_t *core)
                     break;
                 }
 
-                item_num += 1;
-
                 // Max carts. Needs to be fixed later.
-                if (20 == item_num)
+                if (20 == item_index)
                 {
                     break;
                 }
             }
         }
         closedir (dir);
+    }
+
+    lua_getglobal(core->L, "_init");
+    if (lua_isfunction(core->L, -1))
+    {
+        if (LUA_OK == lua_pcall(core->L, 0, 1, 0))
+        {
+            lua_pop(core->L, lua_gettop(core->L));
+        }
+        else
+        {
+            SDL_Log("Error calling _init(): %s", lua_tostring(core->L,-1));
+        }
     }
 
     return;

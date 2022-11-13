@@ -15,16 +15,15 @@
 #if defined (__NGAGE__)
 #include "config_ngage.h"
 #else
-#define WINDOW_WIDTH   128
-#define WINDOW_HEIGHT  128
+#define WINDOW_WIDTH   512
+#define WINDOW_HEIGHT  512
 #define WINDOW_FLAGS   0
 #define RENDERER_FLAGS SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE
-#define SCALE_FACTOR   3
-#define USE_VIEWPORT   0
-#define VIEWPORT_X     0
-#define VIEWPORT_Y     0
-#define VIEWPORT_W     WINDOW_WIDTH
-#define VIEWPORT_H     WINDOW_HEIGHT
+#define VIEWPORT_FRAME "frame-256x256.png"
+#define VIEWPORT_X     128
+#define VIEWPORT_Y     88
+#define VIEWPORT_W     256
+#define VIEWPORT_H     256
 
 #define APP_PATH       "./"
 #define PATH_SEP       "/"
