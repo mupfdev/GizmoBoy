@@ -63,14 +63,21 @@ arguments.
 Example:
 
 ```lua
+player_x = 64
+player_y = 100
+
 function _update()
-    cls(11)
-    print("Hello, World!", 40, 58, 1)
-    flip()
+    if btn(0) then
+        player_x = player_x - 1
+    end
+
+    if btn(1) then
+        player_x = player_x + 1
+    end
 end
 ```
 
-### `draw()`
+### `_draw()`
 
 The _draw() function is the second part of the game loop.
 
@@ -84,6 +91,15 @@ once for each animation frame.
 
 ?> You define this function in your game's source code. It takes no
 arguments.
+
+Example:
+
+```lua
+function _draw
+    cls()
+    print("Hello, world!")
+end
+```
 
 ## Graphics
 
