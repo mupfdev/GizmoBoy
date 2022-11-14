@@ -28,6 +28,7 @@ typedef struct core
     SDL_Event  event;
     SDL_bool   is_running;
     SDL_bool   is_menu;
+    char      *error_msg;
     int        cur_menu_index;
     int        menu_item_max_index;
 

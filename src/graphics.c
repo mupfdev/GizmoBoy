@@ -25,7 +25,6 @@ typedef struct draw_state
     SDL_Texture  *render_target;
     SDL_Texture  *font;
     SDL_Texture  *frame;
-    Uint8         buffer[0x3c00];
     int           col;
     int           cur_x;
     int           cur_y;
@@ -188,7 +187,7 @@ void graphics_deinit(void)
     SDL_Quit();
 }
 
-int graphics_draw_menu(int cur_menu_index)
+int graphics_draw_menu(int cur_menu_index, char *error_msg)
 {
     DIR  *dir;
     char *title      = "GizmoBoy";
@@ -200,8 +199,8 @@ int graphics_draw_menu(int cur_menu_index)
 
     clear_screen(0);
 
-    state.cur_margin = 2;
-    state.cur_x      = 2;
+    state.cur_margin = 0;
+    state.cur_x      = 0;
     state.cur_y      = 2;
 
     for (i = 0; i < SDL_strlen(title); i += 1)
@@ -214,9 +213,9 @@ int graphics_draw_menu(int cur_menu_index)
         set_col(state.col, SDL_FALSE);
     }
 
-    state.cur_margin = 2;
-    state.cur_x      = 2;
-    state.cur_y      = 12;
+    state.cur_margin = 0;
+    state.cur_x      = 0;
+    state.cur_y      = 14;
     dir              = opendir(APP_PATH "carts" PATH_SEP);
 
     if (NULL != dir)
@@ -231,12 +230,12 @@ int graphics_draw_menu(int cur_menu_index)
 
                 if (item_index == cur_menu_index)
                 {
-                    draw_rect(2, state.cur_y, 6, state.cur_y + 6, 14, SDL_TRUE);
-                    state.cur_x = 8;
+                    draw_rect(0, state.cur_y, 4, state.cur_y + 6, 14, SDL_TRUE);
+                    state.cur_x = 6;
                 }
                 else
                 {
-                    state.cur_x = 2;
+                    state.cur_x = 0;
                 }
 
                 set_col(7, SDL_FALSE);
@@ -245,7 +244,7 @@ int graphics_draw_menu(int cur_menu_index)
                 state.cur_y += 6;
 
                 // Max carts. Needs to be fixed later.
-                if (20 == item_index)
+                if (19 == item_index)
                 {
                     break;
                 }
@@ -264,6 +263,16 @@ int graphics_draw_menu(int cur_menu_index)
 
         set_col(8, SDL_FALSE);
         draw_text("No carts found");
+        set_col(state.col, SDL_FALSE);
+    }
+
+    if (error_msg != NULL)
+    {
+        set_col(8, SDL_FALSE);
+        state.cur_margin = 0;
+        state.cur_x      = 0;
+        state.cur_y      = 120;
+        draw_text(error_msg);
         set_col(state.col, SDL_FALSE);
     }
 

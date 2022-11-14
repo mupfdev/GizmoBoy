@@ -54,7 +54,7 @@ int core_update(core_t *core)
 
     if (SDL_TRUE == core->is_menu)
     {
-        core->menu_item_max_index = graphics_draw_menu(core->cur_menu_index);
+        core->menu_item_max_index = graphics_draw_menu(core->cur_menu_index, core->error_msg);
     }
 
     if (SDL_PollEvent(&core->event))
@@ -208,17 +208,20 @@ void core_run_cartridge(core_t *core)
                     if (LUA_OK == luaL_dofile(core->L, file_name))
                     {
                         lua_pop(core->L, lua_gettop(core->L));
-                        core->is_menu = SDL_FALSE;
+                        core->is_menu   = SDL_FALSE;
+                        core->error_msg = NULL;
                     }
                     else
                     {
-                        SDL_Log("Could not load script '%s'", file_name);
+                        core->error_msg = SDL_strstr(lua_tostring(core->L, -1), ":");
+                        core->error_msg = SDL_strstr(core->error_msg, ":") + 1;
+                        SDL_Log("%s", core->error_msg);
                     }
                     break;
                 }
 
                 // Max carts. Needs to be fixed later.
-                if (20 == item_index)
+                if (19 == item_index)
                 {
                     break;
                 }
