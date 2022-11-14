@@ -1,9 +1,4 @@
---[[
-
-Title:  A game of squash
-Author: Felix Balzer (@pizzamakesgames)
-
---]]
+-- A game of squash by Felix Balzer (@pizzamakesgames)
 
 score = 0
 
