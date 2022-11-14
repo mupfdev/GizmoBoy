@@ -12,8 +12,9 @@ end
 
 function _draw()
     rectfill(0, 0, 127, 127, 0)
+    cls()
     i = 0
-    while( i < 20) do
+    while(i < 20) do
         e = (i * 0.5)
         line(0, (frame * e), 127 - (frame * e), 0, 7)
         line((frame * e), 127, 0, (frame * e), 7)
