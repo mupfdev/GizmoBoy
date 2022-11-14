@@ -12,7 +12,6 @@ end
 
 function _draw()
     rectfill(0, 0, 127, 127, 0)
-    cls()
     i = 0
     while(i < 20) do
         e = (i * 0.5)
