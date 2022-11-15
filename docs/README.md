@@ -4,15 +4,8 @@ GizmoBoy games are written in Lua 5.4, please refer to the official Lua
 5.4 reference manual which can be found here: [Lua 5.4 Reference
 Manual](https://www.lua.org/manual/5.4/).
 
-<details>
-<summary>Available standard libraries</summary>
-
-- <a href="https://www.lua.org/manual/5.3/manual.html#6.1">Basic Functions</a>
-- <a href="https://www.lua.org/manual/5.3/manual.html#6.4">String Manipulation</a>
-- <a href="https://www.lua.org/manual/5.3/manual.html#6.6">Table Manipulation</a>
-- <a href="https://www.lua.org/manual/5.3/manual.html#6.7">Mathematical Functions</a>
-
-</details>
+!> Please note that the standard libraries are not available.  This
+limitation is intentional.
 
 ## The game loop
 
@@ -462,3 +455,22 @@ btn( [i] )
 
 > **Return value** If a button is specified, then true or false,
 otherwise a bitfield.
+
+## Math
+
+### `rnd()`
+
+Generates a random number under the given limit.
+
+```lua
+rnd( limit )
+```
+
+The `rnd()` function returns a random number in a range.  The result
+ranges from 0 up the given limit, but will never be the limit value
+itself.  For instance, `rnd(10)` can return from **0** up to **9**, but
+will never return **10**.
+
+> **limit** The range limit.
+
+> **Return value** A random number between **0** and **limit - 1**.

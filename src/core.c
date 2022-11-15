@@ -16,6 +16,7 @@
 #include "core.h"
 #include "graphics.h"
 #include "input.h"
+#include "maths.h"
 
 int core_init(core_t **core)
 {
@@ -26,15 +27,12 @@ int core_init(core_t **core)
     }
 
     (*core)->L = luaL_newstate();
-    luaopen_base((*core)->L);
-    luaopen_string((*core)->L);
-    luaopen_table((*core)->L);
-    luaopen_math((*core)->L);
 
     if (NULL != (*core)->L)
     {
         register_graphics_api((*core));
         register_input_api((*core));
+        register_math_api((*core));
     }
 
     (*core)->is_running = SDL_TRUE;

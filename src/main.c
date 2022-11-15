@@ -13,11 +13,14 @@
 #include "config.h"
 #include "core.h"
 #include "graphics.h"
+#include "maths.h"
 
 int main(int argc, char* argv[])
 {
     int     status = EXIT_SUCCESS;
     core_t* core   = NULL;
+
+    math_init();
 
     if (graphics_init() != 0)
     {
