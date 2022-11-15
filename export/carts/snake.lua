@@ -57,6 +57,7 @@ function reset_game()
     index    = (32 * s.y) + s.x
     map[100] = -1
     is_dead  = false
+    score    = 0
 end
 
 function update_map()
