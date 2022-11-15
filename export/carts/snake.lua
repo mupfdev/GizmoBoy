@@ -106,7 +106,7 @@ function _update()
     check_input()
 
     if is_dead == false then
-        if t > 2 then
+        if t > 1 then
             update_pos()
             update_map()
             t = 0
