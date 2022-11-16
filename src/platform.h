@@ -1,4 +1,4 @@
-/** @file maths.h
+/** @file platform.h
  *
  *  A portable fantasy console inspired by PICO-8 from Lexaloffle Games.
  *
@@ -7,12 +7,9 @@
  *
  **/
 
-#ifndef MATHS_H
-#define MATHS_H
+#ifndef PLATFORM_H
+#define PLATFORM_H
 
-#include "core.h"
+void register_platform_api(core_t* core);
 
-void math_init(void);
-void register_math_api(core_t* core);
-
-#endif /* MATHS_H */
+#endif /* PLATFORM_H */

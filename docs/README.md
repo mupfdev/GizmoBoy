@@ -1,3 +1,5 @@
+![GizmoBoy](https://raw.githubusercontent.com/mupfdev/GizmoBoy/main/media/logo.svg)
+
 # API Reference
 
 GizmoBoy games are written in Lua 5.4, please refer to the official Lua
@@ -474,3 +476,55 @@ will never return **10**.
 > **limit** The range limit.
 
 > **Return value** A random number between **0** and **limit - 1**.
+
+## System
+
+### `uid()`
+
+Returns a unique platform identifier.
+
+```lua
+uid( )
+```
+
+> **Return value** A unique platform identifier.
+
+<details>
+<summary>Platform identifiers</summary>
+
+- **-1** Unknown Platform
+- **0** AIX
+- **1** Android
+- **2** BSDI
+- **3** Dreamcast
+- **4** Emscripten
+- **5** FreeBSD
+- **6** Haiku
+- **7** HP-UX
+- **8** Irix
+- **9** Linux
+- **10** Atari MiNT
+- **11** MacOS Classic
+- **12** Mac OS X
+- **13** NaCl
+- **14** NetBSD
+- **15** OpenBSD
+- **16** OS/2
+- **17** OSF/1
+- **18** QNX Neutrino
+- **19** RISC OS
+- **20** Solaris
+- **21** Windows
+- **22** WinRT
+- **23** WinGDK
+- **24** Xbox One
+- **25** Xbox Series X|S
+- **26** tvOS
+- **27** iOS
+- **28** PlayStation 2
+- **29** PlayStation Portable
+- **30** PlayStation Vita
+- **31** Nokia N-Gage
+- **32** Nintendo 3DS
+
+</details>

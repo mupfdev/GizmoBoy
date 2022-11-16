@@ -1,3 +1,5 @@
+![GizmoBoy](https://raw.githubusercontent.com/mupfdev/GizmoBoy/main/media/logo.svg)
+
 # GizmoBoy
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/4b253572c9bc49b1b94728f579792e97)](https://www.codacy.com/gh/mupfdev/GizmoBoy/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mupfdev/GizmoBoy&amp;utm_campaign=Badge_Grade)

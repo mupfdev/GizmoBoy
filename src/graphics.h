@@ -10,7 +10,6 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 
-#include "lua.h"
 #include "core.h"
 
 int  graphics_init(void);

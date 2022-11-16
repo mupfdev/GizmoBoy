@@ -11,7 +11,6 @@
 #define INPUT_H
 
 #include "SDL.h"
-#include "lua.h"
 #include "core.h"
 
 typedef enum button

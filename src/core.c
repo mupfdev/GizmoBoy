@@ -17,6 +17,7 @@
 #include "graphics.h"
 #include "input.h"
 #include "maths.h"
+#include "platform.h"
 
 int core_init(core_t **core)
 {
@@ -33,6 +34,7 @@ int core_init(core_t **core)
         register_graphics_api((*core));
         register_input_api((*core));
         register_math_api((*core));
+        register_platform_api((*core));
     }
 
     (*core)->is_running = SDL_TRUE;
