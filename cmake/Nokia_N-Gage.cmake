@@ -62,7 +62,7 @@ add_library(launcher STATIC ${launcher_sources})
 build_exe(game     exe ${UID1} ${UID2} ${UID3}    "${game_libs}")
 build_dll(launcher app ${UID1} ${UID2} ${APP_UID} "${launcher_libs}")
 
-#build_aif(${RESOURCE_DIR} launcher ${APP_UID})
+build_aif(${RESOURCE_DIR} launcher ${APP_UID})
 build_resource(${RESOURCE_DIR} launcher "")
 
 if(GENERATE_SIS)
@@ -71,7 +71,7 @@ if(GENERATE_SIS)
   add_dependencies(
     launcher.sis
     game.exe
-#    launcher.aif
+    launcher.aif
     launcher.app
     launcher.rsc)
 endif()
