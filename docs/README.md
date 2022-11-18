@@ -116,7 +116,7 @@ will be 4.
 > **col** The color of the circle and fill.  If omitted, the color from
 the draw state is used.
 
-### `circ()`
+### `circfill()`
 
 Draws a filled-in circle shape.
 
