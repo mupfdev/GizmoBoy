@@ -40,7 +40,7 @@ static draw_state_t state = { 0 };
 
 static void clear_screen(int col);
 static void draw_circ_sub(int xc, int yc, int x, int y, int col);
-static void draw_circ(int xc, int yc, int r, int col);
+static void draw_circ(int xc, int yc, int rad, int col, SDL_bool fill);
 static void draw_frame(void);
 static void draw_line(int x0, int y0, int x1, int y1, int col);
 static void draw_pixel(int x, int y,  int col);
@@ -48,12 +48,14 @@ static void draw_rect(int x0, int y0, int x1, int y1, int col, SDL_bool fill);
 static void draw_text(const char *str);
 static void flip_screen(void);
 static void get_character_position(const unsigned char character, int* pos_x, int* pos_y);
+static void get_col(int col, Uint8 *r, Uint8 *g, Uint8 *b);
 static int  load_texture_from_file(const char* file_name, SDL_Texture** texture);
 static void set_col(int col, SDL_bool update_state);
 static void set_line_endpoint(int x, int y, SDL_bool validity);
 
 // API functions.
 static int circ(lua_State* L);
+static int circfill(lua_State* L);
 static int cls(lua_State* L);
 static int color(lua_State* L);
 static int cursor(lua_State* L);
@@ -291,6 +293,9 @@ void register_graphics_api(core_t* core)
     lua_pushcfunction(core->L, circ);
     lua_setglobal(core->L, "circ");
 
+    lua_pushcfunction(core->L, circfill);
+    lua_setglobal(core->L, "circfill");
+
     lua_pushcfunction(core->L, cls);
     lua_setglobal(core->L, "cls");
 
@@ -345,29 +350,45 @@ static void draw_circ_sub(int xc, int yc, int x, int y, int col)
     draw_pixel(xc-y, yc-x, col);
 }
 
-// Draw cicrcle using Bresenham's algoritmh.
-static void draw_circ(int xc, int yc, int r, int col)
+static void draw_circ(int xc, int yc, int rad, int col, SDL_bool fill)
 {
-    int x = 0;
-    int y = r;
-    int d = 3 - 2 * r;
-
-    draw_circ_sub(xc, yc, x, y, col);
-
-    while (y >= x)
+    if (SDL_TRUE == fill)
     {
-        x = x + 1;
+        Uint8 r;
+        Uint8 g;
+        Uint8 b;
 
-        if (d > 0)
+        get_col(col, &r, &g, &b);
+
+	if (filledCircleRGBA(state.renderer, xc, yc, rad, r, g, b, 0xff) != 0)
         {
-            y--;
-            d = d + 4 * (x - y) + 10;
+            SDL_Log("Unable to draw filled circle: %s", SDL_GetError());
         }
-        else
-        {
-            d = d + 4 * x + 6;
-        }
+    }
+    else
+    {
+        // Draw cicrcle using Bresenham's algoritmh.
+        int x = 0;
+        int y = rad;
+        int d = 3 - 2 * rad;
+
         draw_circ_sub(xc, yc, x, y, col);
+
+        while (y >= x)
+        {
+            x = x + 1;
+
+            if (d > 0)
+            {
+                y--;
+                d = d + 4 * (x - y) + 10;
+            }
+            else
+            {
+                d = d + 4 * x + 6;
+            }
+            draw_circ_sub(xc, yc, x, y, col);
+        }
     }
 }
 
@@ -526,6 +547,71 @@ static void get_character_position(const unsigned char c, int* x, int* y)
     *y = (i / 16) * 6;
 }
 
+static void get_col(int col, Uint8 *r, Uint8 *g, Uint8 *b)
+{
+    if (col < 0)
+    {
+        col = 0;
+    }
+    else if (col > 15)
+    {
+        col = 15;
+    }
+
+    switch(col)
+    {
+        default:
+        case 0:
+            *r = 0x00, *g = 0x00, *b = 0x00;
+            break;
+        case 1:
+            *r = 0x1d, *g = 0x2b, *b = 0x53;
+            break;
+        case 2:
+            *r = 0x7e, *g = 0x25, *b = 0x53;
+            break;
+        case 3:
+            *r = 0x00, *g = 0x87, *b = 0x51;
+            break;
+        case 4:
+            *r = 0xab, *g = 0x52, *b = 0x36;
+            break;
+        case 5:
+            *r = 0x5f, *g = 0x57, *b = 0x4f;
+            break;
+        case 6:
+            *r = 0xc2, *g = 0xc3, *b = 0xc7;
+            break;
+        case 7:
+            *r = 0xff, *g = 0xf1, *b = 0xe8;
+            break;
+        case 8:
+            *r = 0xff, *g = 0x00, *b = 0x4d;
+            break;
+        case 9:
+            *r = 0xff, *g = 0xa3, *b = 0x00;
+            break;
+        case 10:
+            *r = 0xff, *g = 0xec, *b = 0x27;
+            break;
+        case 11:
+            *r = 0x00, *g = 0xe4, *b = 0x36;
+            break;
+        case 12:
+            *r = 0x29, *g = 0xad, *b = 0xff;
+            break;
+        case 13:
+            *r = 0x83, *g = 0x76, *b = 0x9c;
+            break;
+        case 14:
+            *r = 0xff, *g = 0x77, *b = 0xa8;
+            break;
+        case 15:
+            *r = 0xff, *g = 0xcc, *b = 0xaa;
+            break;
+    }
+}
+
 /* Based on
  * https://wiki.libsdl.org/SDL_CreateRGBSurfaceWithFormatFrom#Code_Examples
  */
@@ -606,9 +692,9 @@ exit:
 
 static void set_col(int col, SDL_bool update_state)
 {
-    Uint8 rd;
-    Uint8 gn;
-    Uint8 bl;
+    Uint8 r;
+    Uint8 g;
+    Uint8 b;
 
     if (col < 0)
     {
@@ -628,63 +714,63 @@ static void set_col(int col, SDL_bool update_state)
     {
         default:
         case 0:
-            rd = 0x00, gn = 0x00, bl = 0x00;
+            r = 0x00, g = 0x00, b = 0x00;
             break;
         case 1:
-            rd = 0x1d, gn = 0x2b, bl = 0x53;
+            r = 0x1d, g = 0x2b, b = 0x53;
             break;
         case 2:
-            rd = 0x7e, gn = 0x25, bl = 0x53;
+            r = 0x7e, g = 0x25, b = 0x53;
             break;
         case 3:
-            rd = 0x00, gn = 0x87, bl = 0x51;
+            r = 0x00, g = 0x87, b = 0x51;
             break;
         case 4:
-            rd = 0xab, gn = 0x52, bl = 0x36;
+            r = 0xab, g = 0x52, b = 0x36;
             break;
         case 5:
-            rd = 0x5f, gn = 0x57, bl = 0x4f;
+            r = 0x5f, g = 0x57, b = 0x4f;
             break;
         case 6:
-            rd = 0xc2, gn = 0xc3, bl = 0xc7;
+            r = 0xc2, g = 0xc3, b = 0xc7;
             break;
         case 7:
-            rd = 0xff, gn = 0xf1, bl = 0xe8;
+            r = 0xff, g = 0xf1, b = 0xe8;
             break;
         case 8:
-            rd = 0xff, gn = 0x00, bl = 0x4d;
+            r = 0xff, g = 0x00, b = 0x4d;
             break;
         case 9:
-            rd = 0xff, gn = 0xa3, bl = 0x00;
+            r = 0xff, g = 0xa3, b = 0x00;
             break;
         case 10:
-            rd = 0xff, gn = 0xec, bl = 0x27;
+            r = 0xff, g = 0xec, b = 0x27;
             break;
         case 11:
-            rd = 0x00, gn = 0xe4, bl = 0x36;
+            r = 0x00, g = 0xe4, b = 0x36;
             break;
         case 12:
-            rd = 0x29, gn = 0xad, bl = 0xff;
+            r = 0x29, g = 0xad, b = 0xff;
             break;
         case 13:
-            rd = 0x83, gn = 0x76, bl = 0x9c;
+            r = 0x83, g = 0x76, b = 0x9c;
             break;
         case 14:
-            rd = 0xff, gn = 0x77, bl = 0xa8;
+            r = 0xff, g = 0x77, b = 0xa8;
             break;
         case 15:
-            rd = 0xff, gn = 0xcc, bl = 0xaa;
+            r = 0xff, g = 0xcc, b = 0xaa;
             break;
     }
 
-    if (SDL_SetRenderDrawColor(state.renderer, rd, gn, bl, 0xff) != 0)
+    if (SDL_SetRenderDrawColor(state.renderer, r, g, b, 0xff) != 0)
     {
-        SDL_Log("Unable to set render color: %s", SDL_GetError());
+        SDL_Log("Unabe to set render color: %s", SDL_GetError());
     }
 
-    if (SDL_SetTextureColorMod(state.font, rd, gn, bl) != 0)
+    if (SDL_SetTextureColorMod(state.font, r, g, b) != 0)
     {
-        SDL_Log("Unable to set font color: %s", SDL_GetError());
+        SDL_Log("Unabe to set font color: %s", SDL_GetError());
     }
 
     if (SDL_TRUE == update_state)
@@ -719,7 +805,30 @@ static int circ(lua_State* L)
         col = (int)luaL_checkinteger(L, 4);
     }
 
-    draw_circ(x, y, r, col);
+    draw_circ(x, y, r, col, SDL_FALSE);
+
+    return 1;
+}
+
+static int circfill(lua_State* L)
+{
+    int argc = lua_gettop(L);
+    int x    = (int)luaL_checkinteger(L, 1);
+    int y    = (int)luaL_checkinteger(L, 2);
+    int r    = 4;
+    int col  = state.col;
+
+    if (argc > 2)
+    {
+        r = (int)luaL_checkinteger(L, 3);
+    }
+
+    if (argc > 3)
+    {
+        col = (int)luaL_checkinteger(L, 4);
+    }
+
+    draw_circ(x, y, r, col, SDL_TRUE);
 
     return 1;
 }

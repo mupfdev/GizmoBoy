@@ -116,6 +116,24 @@ will be 4.
 > **col** The color of the circle and fill.  If omitted, the color from
 the draw state is used.
 
+### `circ()`
+
+Draws a filled-in circle shape.
+
+```lua
+circfill( x, y, [r,] [col] )
+```
+
+> **x** The x coordinate of the center of the circle.
+
+> **y** The y coordinate of the center of the circle.
+
+> **r** The radius of the circle, in pixels.  If omitted, the radius
+will be 4.
+
+> **col** The color of the circle and fill.  If omitted, the color from
+the draw state is used.
+
 ### `cls()`
 
 Clears the graphic buffer.

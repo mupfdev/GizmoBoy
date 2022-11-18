@@ -80,7 +80,5 @@ function _draw()
     -- Draw the paddle
     rectfill(padx, pady, padx + padw, pady + padh, 3)
     -- Draw the ball
-    for s = ballsize, 0, -1 do
-        circ(ballx, bally, s, 3)
-    end
+    circfill(ballx, bally, ballsize, 3)
 end
