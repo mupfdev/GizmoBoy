@@ -186,7 +186,7 @@ void core_run_cartridge(core_t *core)
         return;
     }
 
-    dir = opendir(APP_PATH "carts\\");
+    dir = opendir(APP_PATH "carts" PATH_SEP);
 
     if (NULL != dir)
     {

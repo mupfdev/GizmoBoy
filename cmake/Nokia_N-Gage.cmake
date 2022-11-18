@@ -27,6 +27,7 @@ set(GCC_DEFS      ${GCC_COMN_DEFS} ${GCC_MODE_DEFS})
 
 set(game_libs
   ${EXTRA_LIB}/libSDL.a
+  ${EXTRA_LIB}/libSDL2_gfx.a
   ${EXTRA_LIB}/liblua.a
   ${EPOC_PLATFORM}/gcc/lib/gcc-lib/arm-epoc-pe/2.9-psion-98r2/libgcc.a
   ${EPOC_LIB}/egcc.lib
@@ -100,8 +101,7 @@ target_compile_options(
 target_include_directories(
   game
   PUBLIC
-  ${SRC_DIR}
-  ${SDL_INC_DIR})
+  ${SRC_DIR})
 
 add_dependencies(
   launcher.app

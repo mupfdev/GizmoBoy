@@ -8,6 +8,7 @@
  **/
 
 #include "SDL.h"
+#include "SDL2_gfxPrimitives.h"
 #include "lua.h"
 #include "lauxlib.h"
 #include "dirent.h"

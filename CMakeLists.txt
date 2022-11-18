@@ -27,7 +27,7 @@ set(EXPORT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/export)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${EXPORT_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${EXPORT_DIR})
 
-get_SDL2("2.24.1")
+get_SDL2("2.24.2")
 if (INCLUDE_SDL2_MIXER)
   get_SDL2_mixer("2.6.2")
 endif()
@@ -37,6 +37,7 @@ endif()
 
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 
+# Lua
 set(LUA_VERSION   "5.4.4")
 set(LUA_DEVEL_PKG v${LUA_VERSION}.zip)
 
@@ -65,6 +66,26 @@ ExternalProject_Add(Lua_devel
 set(LUA_INCLUDE_DIR ${LUA_PATH})
 link_directories(${LUA_PATH})
 
+# SDL2_gfx
+set(SDL2_GFX_VERSION "1.0.6")
+set(SDL2_GFX_DEVEL_PKG ${SDL2_GFX_VERSION}.zip)
+set(SDL2_GFX_PATH ${CMAKE_CURRENT_BINARY_DIR}/_deps/SDL2_gfx-${SDL2_GFX_VERSION})
+
+ExternalProject_Add(SDL2_gfx_devel
+  URL https://github.com/mupfdev/SDL2_gfx/archive/refs/tags/${SDL2_GFX_DEVEL_PKG}
+  URL_HASH SHA1=992d2e18217bdfcfe1a958055190a06e75d62cfc
+  DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/_deps
+  DOWNLOAD_NO_PROGRESS true
+  TLS_VERIFY true
+  SOURCE_DIR ${SDL2_GFX_PATH}/
+
+  BUILD_IN_SOURCE 1
+  INSTALL_COMMAND ${CMAKE_COMMAND} -E echo "Skipping install step."
+  PATCH_COMMAND ${CMAKE_COMMAND}  -E echo "Skipping patch step.")
+
+set(SDL2_GFX_INCLUDE_DIR ${SDL2_GFX_PATH})
+link_directories(${SDL2_GFX_PATH})
+
 set(GUI_TYPE "")
 
 if (CMAKE_BUILD_TYPE MATCHES Release)
@@ -90,7 +111,7 @@ target_include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/src
   PRIVATE
   ${SDL2_INCLUDE_DIRS}
-  PRIVATE
+  ${SDL2_GFX_INCLUDE_DIR}
   ${LUA_INCLUDE_DIR}
   ${DIRENT_INCLUDE_DIR})
 
@@ -105,6 +126,7 @@ target_link_libraries(
   ${PROJECT_TITLE}
   PRIVATE
   ${SDL2_LIBRARIES}
+  SDL2_gfx
   lua)
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND UNIX)
@@ -116,7 +138,8 @@ endif()
 
 add_dependencies(
   ${PROJECT_TITLE}
-  Lua_devel)
+  Lua_devel
+  SDL2_gfx_devel)
 
 if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
   set(COMPILE_OPTIONS
