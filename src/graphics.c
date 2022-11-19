@@ -696,72 +696,12 @@ static void set_col(int col, SDL_bool update_state)
     Uint8 g;
     Uint8 b;
 
-    if (col < 0)
-    {
-        col = 0;
-    }
-    else if (col > 15)
-    {
-        col = 15;
-    }
-
     if (NULL == state.renderer)
     {
         return;
     }
 
-    switch(col)
-    {
-        default:
-        case 0:
-            r = 0x00, g = 0x00, b = 0x00;
-            break;
-        case 1:
-            r = 0x1d, g = 0x2b, b = 0x53;
-            break;
-        case 2:
-            r = 0x7e, g = 0x25, b = 0x53;
-            break;
-        case 3:
-            r = 0x00, g = 0x87, b = 0x51;
-            break;
-        case 4:
-            r = 0xab, g = 0x52, b = 0x36;
-            break;
-        case 5:
-            r = 0x5f, g = 0x57, b = 0x4f;
-            break;
-        case 6:
-            r = 0xc2, g = 0xc3, b = 0xc7;
-            break;
-        case 7:
-            r = 0xff, g = 0xf1, b = 0xe8;
-            break;
-        case 8:
-            r = 0xff, g = 0x00, b = 0x4d;
-            break;
-        case 9:
-            r = 0xff, g = 0xa3, b = 0x00;
-            break;
-        case 10:
-            r = 0xff, g = 0xec, b = 0x27;
-            break;
-        case 11:
-            r = 0x00, g = 0xe4, b = 0x36;
-            break;
-        case 12:
-            r = 0x29, g = 0xad, b = 0xff;
-            break;
-        case 13:
-            r = 0x83, g = 0x76, b = 0x9c;
-            break;
-        case 14:
-            r = 0xff, g = 0x77, b = 0xa8;
-            break;
-        case 15:
-            r = 0xff, g = 0xcc, b = 0xaa;
-            break;
-    }
+    get_col(col, &r, &g, &b);
 
     if (SDL_SetRenderDrawColor(state.renderer, r, g, b, 0xff) != 0)
     {
