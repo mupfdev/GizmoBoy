@@ -8,11 +8,21 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Use CMake or Visual Studio to enable these settings.
 option(BUILD_FOR_NOKIA_NGAGE "Build for the Nokia N-Gage" OFF)
+option(BUILD_FOR_WEB         "Build using Emscripten"     OFF)
 option(INCLUDE_SDL2_MIXER    "Include SDL2_mixer"         OFF)
 
 if(BUILD_FOR_NOKIA_NGAGE)
   include(Nokia_N-Gage)
   return()
+endif()
+
+if(BUILD_FOR_WEB)
+  set(USE_FLAGS              "-sUSE_SDL=2")
+  set(CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS} ${USE_FLAGS}")
+  set(CMAKE_C_FLAGS          "${CMAKE_C_FLAGS} ${USE_FLAGS}")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS}")
+  set(CMAKE_EXECUTABLE_SUFFIX .html)
+  set(OPT_CMAKE_ARGS         "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
 endif()
 
 include(project_config)
@@ -57,6 +67,8 @@ ExternalProject_Add(Lua_devel
   TLS_VERIFY true
   SOURCE_DIR ${LUA_PATH}/
 
+  CMAKE_ARGS "${OPT_CMAKE_ARGS}"
+
   BUILD_IN_SOURCE 1
   INSTALL_COMMAND ${CMAKE_COMMAND} -E echo "Skipping install step."
 
@@ -78,6 +90,8 @@ ExternalProject_Add(SDL2_gfx_devel
   DOWNLOAD_NO_PROGRESS true
   TLS_VERIFY true
   SOURCE_DIR ${SDL2_GFX_PATH}/
+
+  CMAKE_ARGS "${OPT_CMAKE_ARGS}"
 
   BUILD_IN_SOURCE 1
   INSTALL_COMMAND ${CMAKE_COMMAND} -E echo "Skipping install step."

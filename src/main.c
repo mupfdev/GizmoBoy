@@ -15,6 +15,28 @@
 #include "graphics.h"
 #include "maths.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#include <emscripten/html5.h>
+
+void main_loop_iter(void *core)
+{
+    status_t core_status = CORE_OK;
+
+    switch(core_status)
+    {
+        default:
+        case CORE_OK:
+        case CORE_WARNING:
+            break;
+        case CORE_QUIT:
+        case CORE_ERROR:
+            emscripten_cancel_main_loop();
+            break;
+    }
+}
+#endif
+
 int main(int argc, char* argv[])
 {
     int     status = EXIT_SUCCESS;
@@ -34,6 +56,9 @@ int main(int argc, char* argv[])
         goto exit;
     }
 
+#ifdef __EMSCRIPTEN__
+    emscripten_set_main_loop_arg(main_loop_iter, core, -1, 1);
+#else
     while (SDL_TRUE == core->is_running)
     {
         status_t core_status = CORE_OK;
@@ -54,6 +79,7 @@ int main(int argc, char* argv[])
                 status           = EXIT_FAILURE;
         }
     }
+#endif
 
 exit:
     core_deinit(core);
