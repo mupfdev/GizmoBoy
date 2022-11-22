@@ -47,10 +47,7 @@ static int rnd(lua_State* L)
     unsigned ret   = xorshift() - 1;
     unsigned limit = (unsigned)luaL_checkinteger(L, 1);
 
-    while (ret > limit)
-    {
-        ret = xorshift() - 1;
-    }
+    ret = (xorshift() - 1) % limit;
     lua_pushinteger(L, ret);
 
     return 1;
