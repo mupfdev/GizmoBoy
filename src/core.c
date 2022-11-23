@@ -115,6 +115,10 @@ int core_update(core_t *core)
                             status = CORE_QUIT;
                         }
                         break;
+                    case SDLK_F11:
+                    case SDLK_f:
+                        graphics_toggle_fullscreen();
+                        break;
                 }
                 break;
             case SDL_KEYUP:

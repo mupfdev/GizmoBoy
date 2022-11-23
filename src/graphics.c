@@ -21,18 +21,20 @@
 
 typedef struct draw_state
 {
-    SDL_Window   *window;
-    SDL_Renderer *renderer;
-    SDL_Texture  *render_target;
-    SDL_Texture  *font;
-    SDL_Texture  *frame;
-    int           col;
-    int           cur_x;
-    int           cur_y;
-    int           line_endpoint_x;
-    int           line_endpoint_y;
-    int           cur_margin;
-    SDL_bool      endpoint_validity;
+    SDL_Window      *window;
+    SDL_Renderer    *renderer;
+    SDL_Texture     *render_target;
+    SDL_Texture     *font;
+    SDL_Texture     *frame;
+    SDL_DisplayMode  display_mode;
+    int              col;
+    int              cur_x;
+    int              cur_y;
+    int              line_endpoint_x;
+    int              line_endpoint_y;
+    int              cur_margin;
+    SDL_bool         endpoint_validity;
+    SDL_bool         fullscreen;
 
 } draw_state_t;
 
@@ -52,6 +54,7 @@ static void get_col(int col, Uint8 *r, Uint8 *g, Uint8 *b);
 static int  load_texture_from_file(const char* file_name, SDL_Texture** texture);
 static void set_col(int col, SDL_bool update_state);
 static void set_line_endpoint(int x, int y, SDL_bool validity);
+static void toggle_fullscreen(void);
 
 // API functions.
 static int circ(lua_State* L);
@@ -288,6 +291,42 @@ int graphics_draw_menu(int cur_menu_index, char *error_msg)
     return item_index;
 }
 
+void graphics_toggle_fullscreen(void)
+{
+    if (SDL_TRUE == state.fullscreen)
+    {
+        if (0 != SDL_SetWindowFullscreen(state.window, 0))
+        {
+            SDL_Log("Unable to disable widow fullscreen: %s", SDL_GetError());
+        }
+        state.fullscreen = SDL_FALSE;
+
+        if (SDL_SetRenderTarget(state.renderer, NULL) != 0)
+        {
+            SDL_Log("Unable to set render target: %s", SDL_GetError());
+        }
+
+        draw_frame();
+
+        if (SDL_SetRenderTarget(state.renderer, state.render_target) != 0)
+        {
+            SDL_Log("Unable to set render target: %s", SDL_GetError());
+        }
+    }
+    else
+    {
+        if (0 != SDL_SetWindowFullscreen(state.window, SDL_WINDOW_FULLSCREEN_DESKTOP))
+        {
+            SDL_Log("Unable to enable widow fullscreen: %s", SDL_GetError());
+        }
+        if (0 != SDL_GetWindowDisplayMode(state.window, &state.display_mode))
+        {
+            SDL_Log("Unable to get window display mode: %s", SDL_GetError());
+        }
+        state.fullscreen = SDL_TRUE;
+    }
+}
+
 void register_graphics_api(core_t* core)
 {
     lua_pushcfunction(core->L, circ);
@@ -511,6 +550,14 @@ static void flip_screen(void)
 {
     SDL_Rect source = { 0, 0, 128, 128 };
     SDL_Rect dest   = { VIEWPORT_X, VIEWPORT_Y, VIEWPORT_W, VIEWPORT_H };
+
+    if (SDL_TRUE == state.fullscreen)
+    {
+        dest.w = (int)SDL_floor((state.display_mode.h / 128)) * 128;
+        dest.h = (int)SDL_floor((state.display_mode.h / 128)) * 128;
+        dest.x = (state.display_mode.w / 2) - (dest.w / 2);
+        dest.y = (state.display_mode.h % dest.h) / 2;
+    }
 
     if (SDL_SetRenderTarget(state.renderer, NULL) != 0)
     {

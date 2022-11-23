@@ -13,7 +13,7 @@
 #include "core.h"
 #include "platform.h"
 
-static Uint64 generate_hash(const unsigned char* str);
+static Uint64 generate_hash(const char* str);
 
 // API functions.
 static int uid(lua_State* L);
@@ -24,7 +24,7 @@ void register_platform_api(core_t* core)
     lua_setglobal(core->L, "uid");
 }
 
-static Uint64 generate_hash(const unsigned char* str)
+static Uint64 generate_hash(const char* str)
 {
     Uint64 hash = 5381;
     int    c;
