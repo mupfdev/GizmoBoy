@@ -36,6 +36,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Update APT packages (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get upgrade -y
       - name: Install build dependencies (Ubuntu)
         if: runner.os == 'Linux'
         # Considering the large amount of dependencies, cache them to save time from run to run
