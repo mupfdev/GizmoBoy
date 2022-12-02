@@ -564,6 +564,10 @@ static void flip_screen(void)
         SDL_Log("Unable to set render target: %s", SDL_GetError());
     }
 
+#ifdef __EMSCRIPTEN__
+    draw_frame();
+#endif
+
     if (SDL_RenderCopy(state.renderer, state.render_target, &source, &dest) != 0)
     {
         SDL_Log("Unable to copy render target: %s", SDL_GetError());

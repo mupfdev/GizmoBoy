@@ -17,12 +17,19 @@ if(BUILD_FOR_NOKIA_NGAGE)
 endif()
 
 if(BUILD_FOR_WEB)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/export/font.png           ${CMAKE_CURRENT_BINARY_DIR}/assets/font.png           COPYONLY)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/export/frame-256x256.png  ${CMAKE_CURRENT_BINARY_DIR}/assets/frame-256x256.png  COPYONLY)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/export/carts/geodezik.lua ${CMAKE_CURRENT_BINARY_DIR}/assets/carts/geodezik.lua COPYONLY)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/export/carts/snake.lua    ${CMAKE_CURRENT_BINARY_DIR}/assets/carts/snake.lua    COPYONLY)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/export/carts/squash.lua   ${CMAKE_CURRENT_BINARY_DIR}/assets/carts/squash.lua   COPYONLY)
+
   set(USE_FLAGS              "-sUSE_SDL=2")
   set(CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS} ${USE_FLAGS}")
   set(CMAKE_C_FLAGS          "${CMAKE_C_FLAGS} ${USE_FLAGS}")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS}")
-  set(CMAKE_EXECUTABLE_SUFFIX .html)
   set(OPT_CMAKE_ARGS         "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
+
+  set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} --preload-file assets")
 endif()
 
 include(project_config)
@@ -112,6 +119,10 @@ if (CMAKE_BUILD_TYPE MATCHES Release)
 endif()
 
 add_executable(${PROJECT_TITLE} ${GUI_TYPE} ${project_sources})
+
+if(BUILD_FOR_WEB)
+  set(CMAKE_EXECUTABLE_SUFFIX .html)
+endif()
 
 set_target_properties(
   ${PROJECT_TITLE}

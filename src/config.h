@@ -25,7 +25,11 @@
 #define VIEWPORT_W     256
 #define VIEWPORT_H     256
 
+#ifdef __EMSCRIPTEN__
+#define APP_PATH       "./assets/"
+#else
 #define APP_PATH       "./"
+#endif
 #define PATH_SEP       "/"
 
 #define KEYCODE_UP     SDLK_UP

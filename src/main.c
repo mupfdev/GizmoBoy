@@ -23,6 +23,8 @@ void main_loop_iter(void *core)
 {
     status_t core_status = CORE_OK;
 
+    core_status = core_update(core);
+
     switch(core_status)
     {
         default:
