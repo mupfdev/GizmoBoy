@@ -1,2 +1,1 @@
 - [API Reference](/)
-- [Web Version](/wasm.html)

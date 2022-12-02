@@ -6,7 +6,9 @@ inspired by [PICO-8](https://www.lexaloffle.com/pico-8.php) from
 SDL2.
 
 You can find the project page on GitHub:
-[mupfdev/GizmoBoy](https://github.com/mupfdev/GizmoBoy).
+[mupfdev/GizmoBoy](https://github.com/mupfdev/GizmoBoy)
+
+You can find a web version of GizmoBoy here: [wasm.html](/wasm.html)
 
 # API Reference
 
