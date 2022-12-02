@@ -1,5 +1,13 @@
 ![GizmoBoy](https://raw.githubusercontent.com/mupfdev/GizmoBoy/main/media/logo.svg)
 
+This is the API documentation of GizmoBoy, a portable fantasy console
+inspired by [PICO-8](https://www.lexaloffle.com/pico-8.php) from
+[Lexaloffle Games](https://www.lexaloffle.com) written in ANSI C using
+SDL2.
+
+You can find the project page on GitHub:
+[mupfdev/GizmoBoy](https://github.com/mupfdev/GizmoBoy).
+
 # API Reference
 
 GizmoBoy games are written in Lua 5.4, please refer to the official Lua
